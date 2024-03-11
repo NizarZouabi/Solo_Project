@@ -1,0 +1,17 @@
+Solo project for Projects & Algorithms
+
+MERN SocialDojo
+
+Features:
+
+Login and Registration page
+All Validations & Authentications included.
+
+Social Media Feed page displays yours and all friends users posts and comments with the ability to comment, share & react with a star.
+
+The ability to add a profile picture & cover for your profile, include images or embed videos in a post, edit & delete only your posts and comments.
+
+Side bar friends list displays new message notifications, invite more displays all existing users who isn't in your friends list you can add the user or access their profiles by clicking on the usernames.
+
+Conversation page can be accessed by clicking on a friend from the side list, realtime chat using socket.io
+
