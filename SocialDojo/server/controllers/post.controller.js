@@ -4,7 +4,7 @@ const path = require('path');
 
 const storage = multer.diskStorage({
     destination: (req, file, callback) => {
-        callback(null, 'uploads');
+        callback(null, 'public/uploads');
     },
     filename: (req, file, callback) => {
         callback(null, file.originalname + '-' + Date.now() + path.extname(file.originalname));
@@ -26,10 +26,9 @@ module.exports.createPost = (req, res) => {
       file: req.file ? req.file.originalname : "",
     });
 
-    newPost
-      .save()
-      .then((createdPost) => {
-        res.status(201).json(createdPost);
+    newPost.save().then((newPost) => {
+        res.json({ newPost });
+        console.log(newPost);
       })
       .catch((err) => res.status(400).json(err));
   });
@@ -41,7 +40,7 @@ module.exports.findAllPosts = (req, res) => {
         console.log(allPosts);
         res.json({ allPosts });
       })
-        .catch((err) => res.status(400).json(err));
+      .catch((err) => res.status(400).json(err));
 }
 
 module.exports.findOnePost = (req, res) => {
@@ -52,6 +51,16 @@ module.exports.findOnePost = (req, res) => {
       })
       .catch((err) => res.status(400).json(err));
 }
+
+module.exports.findUserPosts = (req, res) => {
+  const userId = req.params.userId;
+  Post.find({ author: userId })
+    .then((userPosts) => {
+      console.log(userPosts);
+      res.json({ userPosts });
+    })
+    .catch((err) => res.status(400).json(err));
+};
 
 module.exports.updatePost = (req, res) => {
     Post.findOneAndUpdate({ _id: req.params.id }, req.body, {

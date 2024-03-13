@@ -2,6 +2,79 @@ const User = require("../models/user.model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const key = process.env.KEY;
+const multer = require("multer");
+const path = require("path");
+
+const imageFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only images are allowed"));
+  }
+};
+
+const storage = multer.diskStorage({
+  destination: (req, file, callback) => {
+    callback(null, "public/images");
+  },
+  filename: (req, file, callback) => {
+    callback(
+      null,
+      file.originalname + "-" + Date.now() + path.extname(file.originalname)
+    );
+  },
+});
+
+const upload = multer({ storage: storage, fileFilter: imageFilter  }).single("file");
+
+exports.uploadProfilePicture = (req, res) => {
+  const userId = req.params.userId;
+  upload(req, res, (err) => {
+    if (err) {
+      if (err.message === "Only images are allowed") {
+        return res.status(400).json({ error: "Only images are allowed" });
+      }
+      return res.status(400).json({ error: "Invalid file upload" });
+    }
+
+    User.findByIdAndUpdate(
+      userId,
+      { profilePic: req.file.originalname },
+      { new: true }
+    )
+      .then((updatedUser) => {
+        res.status(200).json({
+          message: "Profile picture uploaded successfully",
+          updatedUser,
+        });
+      })
+      .catch((err) => res.status(400).json(err));
+  });
+};
+
+exports.uploadBanner = (req, res) => {
+  const userId = req.params.userId;
+  upload(req, res, (err) => {
+      if (err) {
+        if (err.message === "Only images are allowed") {
+          return res.status(400).json({ error: "Only images are allowed" });
+        }
+        return res.status(400).json({ error: "Invalid file upload" });
+      }
+
+      User.findByIdAndUpdate(
+        userId,
+        { coverPic: req.file.originalname },
+        { new: true }
+      )
+        .then((updatedUser) => {
+          res
+            .status(200)
+            .json({ message: "Banner uploaded successfully", updatedUser });
+        })
+        .catch((err) => res.status(400).json(err));
+    });
+};
 
 module.exports.register = async (req, res) => {
   try {
@@ -85,7 +158,7 @@ module.exports.getusers = (req, res) => {
 };
 
 module.exports.getuser = (req, res) => {
-  const userId = req.params.id;
+  const userId = req.params.userId;
   User.findOne({ _id: userId })
     .then((user) => {
       if (!user) {
@@ -95,6 +168,8 @@ module.exports.getuser = (req, res) => {
         _id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
+        coverPic: user.coverPic,
+        profilePic: user.profilePic,
         role: user.role,
       };
       res.json({ user: userData });

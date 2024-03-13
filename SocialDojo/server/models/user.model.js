@@ -48,13 +48,9 @@ const User = new mongoose.Schema(
     },
     profilePic: {
       type: String,
-      default:
-        "https://i.pinimg.com/564x/56/8f/a2/568fa2f17d494f297e609eb5e9404c8d.jpg",
     },
     coverPic: {
       type: String,
-      default:
-        "https://lh3.googleusercontent.com/proxy/s4pfKQ4cBN8oMSV-2rcbUZX3_FpiBsgLzbc5lyMR2gKn9z6CQ6HWDzFXt4ZTBXMM4DVz-9LLUY7DXDe2SqfERTdVPiCy2FTHrL8",
     },
     gender: {
       type: String,
@@ -65,12 +61,6 @@ const User = new mongoose.Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
     },
-    posts: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Post",
-      },
-    ],
     sharedPosts: [
       {
         postId: {

@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react';
 import { UserContext } from '../context/userContext';
-// import { useNavigate } from 'react-router-dom'
+import postContext from '../context/postContext';
 import axios from 'axios';
 
 const PostForm = () => {
@@ -11,6 +11,8 @@ const PostForm = () => {
     const [content, setContent] = useState('')
     const [author] = useState(loggedInUser._id)
     const [file, setFile] = useState(null)
+    const { userPosts, setUserPosts } = useContext(postContext)
+    // const { sharedPosts, setSharedPosts } = props
 
     const submitHandler = (e) => {
         e.preventDefault()
@@ -22,10 +24,12 @@ const PostForm = () => {
         postFormData.append('content', content)
         postFormData.append('author', author)
         postFormData.append('file', file)
+        
 
         axios.post('http://localhost:5000/posts/new', postFormData)
             .then(res => {
                 console.log(res.data)
+                setUserPosts([...userPosts, res.data.newPost])
                 setTitle('')
                 setContent('')
                 setFile(null)
@@ -33,7 +37,7 @@ const PostForm = () => {
             })
             .catch((err) => {
                 setErrors(err.response.data.errors)
-                console.log(err)
+                console.log(err.response.data.errors)
             });
     }
 

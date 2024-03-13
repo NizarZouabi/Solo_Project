@@ -6,5 +6,7 @@ module.exports = (app) => {
   app.post("/login", UserController.login);
   app.post("/logout", UserController.logout);
   app.get("/users", authenticate, UserController.getusers);
-  app.get("/user/:id", authenticate, UserController.getuser);
+  app.get("/user/:userId", authenticate, UserController.getuser);
+  app.patch("/user/:userId/pfp/upload", UserController.uploadProfilePicture);
+  app.patch("/user/:userId/banner/upload", UserController.uploadBanner);
 };

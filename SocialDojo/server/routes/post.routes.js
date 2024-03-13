@@ -6,4 +6,5 @@ module.exports = (app) => {
     app.get("/posts/:id", PostController.findOnePost);
     app.put("/posts/:id/update", PostController.updatePost);
     app.delete("/posts/:id", PostController.deletePost);
+    app.get("/posts/user/:userId", authenticate, PostController.findUserPosts);
 }
