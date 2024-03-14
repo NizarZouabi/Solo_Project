@@ -7,6 +7,8 @@ module.exports = (app) => {
   app.post("/logout", UserController.logout);
   app.get("/users", authenticate, UserController.getusers);
   app.get("/user/:userId", authenticate, UserController.getuser);
-  app.patch("/user/:userId/pfp/upload", UserController.uploadProfilePicture);
-  app.patch("/user/:userId/banner/upload", UserController.uploadBanner);
+  app.patch("/user/:userId/pfp/upload", authenticate, UserController.uploadProfilePicture);
+  app.patch("/user/:userId/banner/upload", authenticate, UserController.uploadBanner);
+  app.patch("/user/:userId/friend/:friendId", authenticate, UserController.addFriend);
+  app.patch("/user/:userId/friend/:friendId/remove", authenticate, UserController.removeFriend);
 };

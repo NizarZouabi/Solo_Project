@@ -17,9 +17,6 @@ UserRoutes(app);
 const PostRoutes = require("./routes/post.routes");
 PostRoutes(app);
 
-const CommentRoutes = require("./routes/comment.routes");
-CommentRoutes(app);
-
 app.listen(port, () => {
   console.log(`>>> Server running on Port: ${port}`);
 });

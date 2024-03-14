@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react';
 import { UserContext } from '../context/userContext';
-import postContext from '../context/postContext';
+import { PostContext } from '../context/postContext';
 import axios from 'axios';
 
 const PostForm = () => {
@@ -11,7 +11,7 @@ const PostForm = () => {
     const [content, setContent] = useState('')
     const [author] = useState(loggedInUser._id)
     const [file, setFile] = useState(null)
-    const { userPosts, setUserPosts } = useContext(postContext)
+    const { userPosts, setUserPosts } = useContext(PostContext)
     // const { sharedPosts, setSharedPosts } = props
 
     const submitHandler = (e) => {

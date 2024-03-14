@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [loggedInUser, setLoggedInUser] = useState({ firstName: '' }, { lastName: '' }, { profilePicture: '' }, { coverPic: '' });
+  const [loggedInUser, setLoggedInUser] = useState({ firstName: '' }, { lastName: '' }, { profilePic: '' }, { coverPic: '' });
   const id = localStorage.getItem('userId')
   
   useEffect(() => {

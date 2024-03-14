@@ -21,10 +21,24 @@ const Post = new mongoose.Schema(
       type: String,
       default: null,
     },
-    comments: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "Comment"
-    },
+    comments: [
+      {
+        content: {
+          type: String,
+          required: true,
+        },
+        author: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        stars: {
+          type: Number,
+          default: 0,
+        },
+        // Add any other fields for comments as needed
+      },
+    ],
     stars: {
       type: Number,
       default: 0,
