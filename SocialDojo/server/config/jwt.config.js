@@ -13,7 +13,7 @@ module.exports.authenticate = (req, res, next) => {
     if (err) {
       return res.status(401).json({
         verified: false,
-        message: "Please login to access this page.",
+        message: "There is an error with your token.",
       });
     } else {
       req.userId = payload.userId;

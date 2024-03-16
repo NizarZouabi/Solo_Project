@@ -9,7 +9,7 @@ const storage = multer.diskStorage({
   filename: (req, file, callback) => {
     callback(
       null,
-      file.originalname + "-" + Date.now() + path.extname(file.originalname)
+      file.filename + "-" + Date.now() + path.extname(file.originalname)
     );
   },
 });
@@ -26,7 +26,7 @@ module.exports.createPost = (req, res) => {
       title: req.body.title,
       content: req.body.content,
       author: req.body.author,
-      file: req.file ? req.file.originalname : "",
+      file: req.file ? req.file.filename : "",
     });
 
     newPost
@@ -52,7 +52,7 @@ module.exports.updatePost = (req, res) => {
     };
 
     if (req.file) {
-      updatedFields.file = req.file.originalname;
+      updatedFields.file = req.file.filename;
     }
 
     Post.findOneAndUpdate({ _id: req.params.id }, updatedFields, {
@@ -140,28 +140,26 @@ module.exports.removeStar = (req, res) => {
 };
 
 module.exports.addComment = (req, res) => {
-  const postId = req.params.postId;
-  const { content, author } = req.body;
+  const postId = req.params.id;
   const newComment = {
-    content,
-    author,
+    content: req.body.content,
+    author: req.body.author,
+    pfp: req.body.pfp,
+    authorName: req.body.authorName,
   };
 
-  Post.findByIdAndUpdate(
-    postId,
-    { $push: { comments: newComment } },
-    { new: true }
-  )
-    .then((updatedPost) => {
-      if (!updatedPost) {
-        return res.status(404).json({ message: "Post not found." });
-      }
-      res.json({ message: "Comment added successfully.", post: updatedPost });
+  Post.findById(postId)
+    .then(post => {
+      post.comments.push(newComment);
+      return post.save();
     })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json({ message: "Internal server error." });
-    });
+    .then(updatedPost => {
+      res.json({
+        message: "Comment added successfully.",
+        post: updatedPost,
+      });
+    })
+    .catch((err) => res.status(400).json(err));
 };
 
 module.exports.addStarToComment = (req, res) => {

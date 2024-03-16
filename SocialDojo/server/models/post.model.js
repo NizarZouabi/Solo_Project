@@ -19,7 +19,6 @@ const Post = new mongoose.Schema(
     },
     file: {
       type: String,
-      default: null,
     },
     comments: [
       {
@@ -32,11 +31,18 @@ const Post = new mongoose.Schema(
           ref: "User",
           required: true,
         },
+        authorName: {
+          type: String,
+          required: true,
+        },
+        pfp :{
+          type: String,
+          required: true,
+        },
         stars: {
           type: Number,
-          default: 0,
+          default: 0
         },
-        // Add any other fields for comments as needed
       },
     ],
     stars: {

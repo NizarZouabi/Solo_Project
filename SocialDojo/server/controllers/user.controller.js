@@ -141,7 +141,9 @@ module.exports.logout = (req, res) => {
 };
 
 module.exports.getusers = (req, res) => {
-  User.find({})
+  const userId = req.params.userId;
+
+  User.find({ _id: { $ne: userId } })
     .then((users) => {
       if (!users || users.length === 0) {
         return res.status(404).json({ message: "Users not found" });
@@ -150,6 +152,8 @@ module.exports.getusers = (req, res) => {
         _id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
+        coverPic: user.coverPic,
+        profilePic: user.profilePic,
         role: user.role,
       }));
       res.json({ users: usersData });
@@ -225,32 +229,6 @@ module.exports.removeFriend = async (req, res) => {
     res
       .status(200)
       .json({ message: "Friend removed successfully.", user: user });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Internal server error." });
-  }
-};
-
-module.exports.removeFriend = async (req, res) => {
-  try {
-    const userId = req.params.userId;
-    const friendId = req.params.friendId;
-    const [user, friend] = await Promise.all([
-      User.findById(userId),
-      User.findById(friendId),
-    ]);
-
-    if (!user || !friend) {
-      return res.status(404).json({ message: "User or friend not found." });
-    }
-    
-    user.friends = user.friends.filter((id) => id.toString() !== friendId);
-    await user.save();
-
-    friend.friends = friend.friends.filter((id) => id.toString() !== userId);
-    await friend.save();
-
-    res.status(200).json({ message: "Friend removed successfully." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error." });
