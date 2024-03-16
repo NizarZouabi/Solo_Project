@@ -36,7 +36,6 @@ const Post = new mongoose.Schema(
           type: Number,
           default: 0,
         },
-        // Add any other fields for comments as needed
       },
     ],
     stars: {
