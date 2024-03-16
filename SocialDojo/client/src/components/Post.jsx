@@ -6,6 +6,7 @@ import axios from "axios";
 import CommentForm from "./CommentForm";
 
 const Post = (props) => {
+  const [commentId, setCommentId] = useState("");
   const { post, user, profilePic, userPosts, setUserPosts } = props;
   const { loggedInUser } = useContext(UserContext);
   const authToken = window.localStorage.getItem("userToken");
@@ -44,6 +45,23 @@ const Post = (props) => {
       })
       .catch((err) => console.log(err));
   };
+  
+  const deleteComment = (commentId) => {
+    axios
+      .delete(`http://localhost:5000/posts/${post._id}/remove/comment/${commentId}`)
+      .then((res) => {
+        setUserPosts(prevUserPosts => {
+          return prevUserPosts.map(prevPost => {
+            if (prevPost._id === post._id) {
+              return {
+                ...prevPost, comments: prevPost.comments.filter(comment => comment._id !== commentId)};}
+            return prevPost;
+          });
+        });
+        console.log(res);
+      })
+      .catch((err) => console.log(err));
+  };
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -66,8 +84,8 @@ const Post = (props) => {
         reload();
       })
       .catch((err) => {
-        setErrors(err.response.data.errors);
-        console.log(err.response.data.errors);
+        setErrors(err.response.data);
+        console.log(err.response.data);
       });
   };
 
@@ -75,7 +93,7 @@ const Post = (props) => {
     <div>
       <div>
         <div
-          className="bg-gray-50 mt-24 mb-10 shadow-md border border-solid border-gray-400 rounded-lg position: sticky"
+          className="bg-gray-50 mt-48 mb-10 shadow-md border border-solid border-gray-400 rounded-lg position: sticky"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -262,7 +280,7 @@ const Post = (props) => {
                     {post.content}
                   </p>
                   <div
-                    className="container mt-4 bg-white overflow-y-auto w-auto m-2 p-2 px-4"
+                    className="container mt-4 bg-white overflow-x-hidden w-auto m-2 p-2 px-4"
                     style={{ height: "50%" }}
                   >
                     {post.comments.length > 0 ? (
@@ -281,25 +299,32 @@ const Post = (props) => {
                               style={{ width: "40px", height: "40px" }}
                             ></img>
                           )}
-                          <div className=" dislpay: flex flex-col position: sticky left-12">
+                          <div className=" dislpay: flex flex-col position: sticky left-12" style={{ width: "100%", height: "auto" }}>
                             <h5 className="text-lg font-semibold">
                               {comment.authorName}
                             </h5>
                             <div className="display: flex flex-row">
-                              <p
-                                className="container text-pretty border rounded-lg px-1 overflow-y-auto bg-white"
-                                style={{ height: "50px", width: "100%" }}
+                              {loggedInUser._id == comment.author ? (<div><p
+                                className="container border rounded-lg px-3  bg-white"
+                                style={{ height: "auto", minWidth: "50px", maxWidth:"400px"  ,overflowWrap: "break-word" }}
                               >
                                 {comment.content}
-                              </p>
+                              </p><span className="text-red-500 hover:underline cursor-pointer" onClick={() => deleteComment(comment._id)}>Delete</span></div>) : (<p
+                                className="container border rounded-lg px-3  bg-white"
+                                style={{ height: "auto", minWidth: "50px" , maxWidth:"400px" , overflowWrap: "break-word"}}
+                              >
+                                {comment.content}
+                              </p>)}
+                              <div className="display: flex flex-row">
                               <p className="ms-2">0</p>
                               <button className="mb-5">
                                 <img
-                                  src="https://w7.pngwing.com/pngs/710/952/png-transparent-computer-icons-star-star-thumbnail.png"
+                                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/2011px-Star_empty.svg.png"
                                   className="position: sticky ms-2"
                                   style={{ height: "30px", width: "30px" }}
                                 />
                               </button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -343,15 +368,26 @@ const Post = (props) => {
           </div>
           <div className="display: flex justify-center">
             <div>
-              <div className="display: flex flex-row gap-3 my-2">
-                <label className="font-bold text-lg text-gray-600">
+              <div className="display: flex flex-row gap-3 mt-4">
+                <label className="font-bold text-xl text-gray-600">
                   Comment:
                 </label>
                 <input
                   className="shadow-md border border-solid border-gray-400 rounded-lg"
                   type="text"
+                  style={{ height: "3.5vh"}}
                   onClick={() => setCommentVisible(true)}
                 />
+                <div className="display: flex flex-row">
+                              <p className="ms-2">0</p>
+                              <button className="mb-5">
+                                <img
+                                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/2011px-Star_empty.svg.png"
+                                  className="position: sticky ms-2"
+                                  style={{ height: "30px", width: "30px" }}
+                                />
+                              </button>
+                              </div>
                 <Model
                   ariaHideApp={false}
                   isOpen={commentVisible}

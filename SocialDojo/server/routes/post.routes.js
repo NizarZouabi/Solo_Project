@@ -7,7 +7,8 @@ module.exports = (app) => {
     app.patch("/posts/:id/update", PostController.updatePost);
     app.delete("/posts/:id", PostController.deletePost);
     app.get("/posts/user/:userId", authenticate, PostController.findUserPosts);
-    app.patch("/posts/user/:id/comment", PostController.addComment);
+    app.patch("/posts/:id/comment", PostController.addComment);
+    app.delete("/posts/:id/remove/comment/:commentId", PostController.deleteComment);
     app.patch("/posts/user/:userId/addstar", PostController.addStar);
     app.patch("/posts/user/:userId/remove/poststar/:postId", PostController.removeStar);
     app.patch("/posts/user/:userId/addstar/:commentId", PostController.addStarToComment);

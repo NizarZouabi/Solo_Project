@@ -181,7 +181,7 @@ module.exports.getuser = (req, res) => {
     .catch((err) => res.status(400).json(err));
 };
 
-module.exports.addFriend = async (req, res) => {
+module.exports.sendFriendRequest = async (req, res) => {
   try {
     const userId = req.params.userId;
     const friendId = req.params.friendId;
@@ -193,13 +193,35 @@ module.exports.addFriend = async (req, res) => {
     if (!user || !friend) {
       return res.status(404).json({ message: "User or friend not found." });
     }
+    if (user.pendingRequests.includes(friendId)) {
+      return res.status(400).json({ message: "Friend request already sent." });
+    }
 
-    user.friends.push(friendId);
+    user.pendingRequests.push(friendId);
     await user.save();
+    res.status(200).json({ message: "Friend request sent successfully." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
 
+module.exports.addFriend = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const friendId = req.params.friendId;
+    const [user, friend] = await Promise.all([
+      User.findById(userId),
+      User.findById(friendId),
+    ]);
+    if (!user || !friend) {
+      return res.status(404).json({ message: "User or friend not found." });
+    }
+
+    user.pendingRequests = user.pendingRequests.filter(id => id !== friendId);
+    user.friends.push(friendId);
     friend.friends.push(userId);
-    await friend.save();
-
+    await Promise.all([user.save(), friend.save()]);
     res.status(200).json({ message: "Friend added successfully." });
   } catch (err) {
     console.error(err);

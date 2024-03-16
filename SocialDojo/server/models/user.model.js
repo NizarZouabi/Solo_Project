@@ -57,6 +57,10 @@ const User = new mongoose.Schema(
       enum: ["male", "female"],
       required: [true, "Gender is required."],
     },
+    pendingRequests: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
     friends: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",

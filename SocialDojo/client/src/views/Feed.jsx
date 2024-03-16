@@ -59,7 +59,7 @@ const Feed = (props) => {
         </Link>
         <Logout />
       </div>
-      <div style={{ position: "absolute", top: "-14%" }}>
+      <div style={{ position: "absolute", top: "-9%" }}>
         <PostModal userPosts={userPosts} setUserPosts={setUserPosts} />
       </div>
       <div>

@@ -162,6 +162,27 @@ module.exports.addComment = (req, res) => {
     .catch((err) => res.status(400).json(err));
 };
 
+module.exports.deleteComment = async (req, res) => {
+  const { commentId, id } = req.params;
+  try {
+    const updatedPost = await Post.findOneAndUpdate(
+      { _id: id },
+      {
+        $pull: {
+          comments: { _id: commentId },
+        },
+      },
+      { new: true, runValidators: true }
+    );
+    res.json({
+      message: "Comment deleted successfully.",
+      post: updatedPost,
+    });
+  } catch (err) {
+    res.status(400).json(err);
+  }
+};
+
 module.exports.addStarToComment = (req, res) => {
   const commentId = req.params.commentId;
 

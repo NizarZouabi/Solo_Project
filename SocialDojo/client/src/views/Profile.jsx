@@ -8,7 +8,6 @@ import { useState, useContext, useEffect } from "react";
 import { UserContext } from "../context/userContext";
 import Post from "../components/Post";
 import { useParams, Link } from "react-router-dom";
-import CommentForm from "../components/CommentForm";
 import axios from "axios";
 
 const Profile = (props) => {
@@ -24,6 +23,7 @@ const Profile = (props) => {
   const [coverPic, setCoverPic] = useState(null);
   const { userPosts, setUserPosts } = props;
   const [loading, setLoading] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState([]);
   const sortedPosts = userPosts
     .slice()
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -92,6 +92,24 @@ const Profile = (props) => {
         });
     }
   }, [loggedInUser, userId, authToken]);
+
+  const inviteFriend = (e) => {
+    e.preventDefault();
+
+    axios.post(`http://localhost:5000/user/${loggedInUser._id}/invite/${userId}`)
+    .then((res) => {
+      setPendingRequests([...pendingRequests, res.data]);
+    })
+  }
+
+  const addFriend = (e) => {
+    e.preventDefault();
+
+    axios.post(`http://localhost:5000/user/${loggedInUser._id}/friend/${userId}`)
+    .then((res) => {
+      setUserFriends([...userFriends, res.data]);
+    })
+  }
 
   useEffect(() => {
     if (!loading && userId) {
@@ -255,7 +273,7 @@ const Profile = (props) => {
 
         <div className="display: flex justify-center gap-1">
           <span
-            className="shadow-md rounded-full"
+            className="shadow-md rounded-full mt-24"
             style={{ position: "absolute", top: "0", padding: "100.5px" }}
           >
             {profilePic &&
@@ -293,7 +311,7 @@ const Profile = (props) => {
           </span>
           {loggedInUser._id == user._id ? (
             <button
-              className="bg-transparent shadow-md hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-full position: sticky mt-28"
+              className="bg-transparent shadow-md hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-full position: sticky mt-52"
               onClick={() => setVisiblePfp(true)}
             >
               +
@@ -344,7 +362,7 @@ const Profile = (props) => {
         </div>
       </div>
 
-      <div>
+      <div className="position absolute top-24">
         {loggedInUser._id == user._id ? (
           <PostModal userPosts={userPosts} setUserPosts={setUserPosts} />
         ) : null}

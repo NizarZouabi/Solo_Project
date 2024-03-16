@@ -9,6 +9,7 @@ module.exports = (app) => {
   app.get("/user/:userId/find", UserController.getusers);
   app.patch("/user/:userId/pfp/upload", UserController.uploadProfilePicture);
   app.patch("/user/:userId/banner/upload", UserController.uploadBanner);
-  app.patch("/user/:userId/friend/:friendId", authenticate, UserController.addFriend);
+  app.post("/user/:userId/invite/:friendId", UserController.sendFriendRequest);
+  app.post("/user/:userId/friend/:friendId", UserController.addFriend);
   app.patch("/user/:userId/friend/:friendId/remove", authenticate, UserController.removeFriend);
 };
