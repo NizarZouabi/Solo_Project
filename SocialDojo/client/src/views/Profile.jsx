@@ -9,6 +9,7 @@ import { UserContext } from "../context/userContext";
 import Post from "../components/Post";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
+import Requests from "../components/Requests";
 
 const Profile = (props) => {
   const { userId } = useParams();
@@ -37,7 +38,16 @@ const Profile = (props) => {
     profileFormData.append("file", profilePic);
 
     axios
-      .patch(`http://localhost:5000/user/${userId}/pfp/upload`, profileFormData)
+      .patch(
+        `http://localhost:5000/user/${userId}/pfp/upload`,
+        profileFormData,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+          withCredentials: true,
+        }
+      )
       .then((res) => {
         console.log(res.data);
         reload();
@@ -58,7 +68,13 @@ const Profile = (props) => {
     axios
       .patch(
         `http://localhost:5000/user/${userId}/banner/upload`,
-        profileFormData
+        profileFormData,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+          withCredentials: true,
+        }
       )
       .then((res) => {
         console.log(res.data);
@@ -84,8 +100,7 @@ const Profile = (props) => {
           setUser(res.data.user);
           setProfilePic(res.data.user.profilePic);
           setCoverPic(res.data.user.coverPic);
-          console.log(res.data.user.coverPic);
-          console.log(res.data.user.profilePic);
+          setPendingRequests(res.data.pendingRequests);
         })
         .catch((err) => {
           console.log(err);
@@ -96,20 +111,69 @@ const Profile = (props) => {
   const inviteFriend = (e) => {
     e.preventDefault();
 
-    axios.post(`http://localhost:5000/user/${loggedInUser._id}/invite/${userId}`)
-    .then((res) => {
-      setPendingRequests([...pendingRequests, res.data]);
-    })
-  }
+    if (!loggedInUser || !loggedInUser._id) {
+      console.error("User not logged in");
+      return;
+    }
+    if (!loading && userId) {
+      axios
+        .patch(
+          `http://localhost:5000/user/${loggedInUser._id}/invite/${userId}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+            withCredentials: true,
+          }
+        )
+        .then((res) => {
+          console.log(res.data)
+          reload();
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
+  };
+
+  const cancelRequest = (e) => {
+    e.preventDefault();
+
+    axios
+      .patch(
+        `http://localhost:5000/user/${loggedInUser._id}/friend/${userId}/cancel`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+          withCredentials: true,
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+        reload();
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
 
   const addFriend = (e) => {
     e.preventDefault();
 
-    axios.post(`http://localhost:5000/user/${loggedInUser._id}/friend/${userId}`)
-    .then((res) => {
-      setUserFriends([...userFriends, res.data]);
-    })
-  }
+    axios
+      .post(`http://localhost:5000/user/${loggedInUser._id}/friend/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+        withCredentials: true,
+      })
+      .then((res) => {
+        setUserFriends([...userFriends, res.data]);
+      });
+  };
 
   useEffect(() => {
     if (!loading && userId) {
@@ -138,6 +202,10 @@ const Profile = (props) => {
         Loading Data...
       </div>
     );
+  }
+
+  if (!authToken) {
+    return (<p className="m-5 font-bold text-red-500">Please login to view this page.</p>)
   }
 
   return (
@@ -183,8 +251,9 @@ const Profile = (props) => {
         )}
         <div className="position: absolute ms-24 mt-6 ">
           <h2
-            className="text-gray-50 text-7xl font-bold"
+            className="text-gray-50 text-7xl font-bold overflow-hidden whitespace-nowrap overflow-ellipsis"
             style={{
+              maxWidth: "29vw",
               WebkitTextStroke: "1px black",
               textShadowColor: "rgba(0, 0, 0, 0.75)",
               textShadowOffset: { width: "-1%", height: "1%" },
@@ -194,6 +263,9 @@ const Profile = (props) => {
             {user.firstName} {user.lastName}
           </h2>
         </div>
+        {loggedInUser._id == user._id && <div className="position: absolute ms-40 mt-28">
+          <Requests/>
+        </div>}
         <div className="">
           <div className="display: flex justify-end gap-5 position: sticky">
             {loggedInUser._id !== user._id ? (
@@ -220,12 +292,26 @@ const Profile = (props) => {
               >
                 Change banner picture
               </button>
-            ) : (<button
-            className="bg-gray-500 shadow-md hover:bg-gray-400 text-white font-semibold py-2 px-4 rounded-full position: absolute mt-20 me-32"
-            onClick={() => setVisibleBanner(true)}
-          >
-            Add
-          </button>)}
+            ) : null}
+
+            {loggedInUser._id !== user._id &&
+              user &&
+              user.pendingRequests &&
+              (user.pendingRequests.some(request => request.senderId === loggedInUser._id) ? (
+                <button
+                  className="bg-gray-500 shadow-md hover:bg-gray-400 text-white font-semibold py-2 px-4 rounded-full position: absolute mt-20 me-32"
+                  onClick={cancelRequest}
+                >
+                  Cancel
+                </button>
+              ) : (
+                <button
+                  className="bg-gray-500 shadow-md hover:bg-gray-400 text-white font-semibold py-2 px-4 rounded-full position: absolute mt-20 me-32"
+                  onClick={inviteFriend}
+                >
+                  Add Friend
+                </button>
+              ))}
             <Model
               ariaHideApp={false}
               isOpen={visibleBanner}
@@ -371,7 +457,15 @@ const Profile = (props) => {
 
       {loggedInUser && sortedPosts.length > 0 ? (
         sortedPosts.map((post, idx) => (
-          <Post key={idx} post={post} user={user} profilePic={profilePic} userPosts={userPosts} setUserPosts={setUserPosts} />))
+          <Post
+            key={idx}
+            post={post}
+            user={user}
+            profilePic={profilePic}
+            userPosts={userPosts}
+            setUserPosts={setUserPosts}
+          />
+        ))
       ) : (
         <div>
           <p

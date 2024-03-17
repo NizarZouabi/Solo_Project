@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Register = () => {
-  const { setLoggedInUser } = useContext(UserContext);
+  const { loggedInUser } = useContext(UserContext);
   const Nav = useNavigate();
   const [userForm, setUserForm] = useState({
     firstName: "",
@@ -40,34 +40,18 @@ const Register = () => {
         { withCredentials: true }
       )
       .then((res) => {
-        axios.post(
-          "http://localhost:5000/login",
-          {
-            email: userForm.email,
-            password: userForm.password,
-          },
-          { withCredentials: true }
-        );
-        window.localStorage.setItem("userToken", res.data.token);
-        window.localStorage.setItem("userId", res.data.userId);
-        setUserForm({
-          firstName: "",
-          lastName: "",
-          email: "",
-          birthdate: "",
-          gender: "",
-          password: "",
-          confirmPassword: "",
-        });
         setRegisterErrors({});
-        setLoggedInUser(res.data.user);
-        Nav("/feed");
+        Nav("/login");
       })
       .catch((err) => {
-        console.log(err);
+        console.log(err.response.data.errors);
         setRegisterErrors(err.response.data.errors);
       });
   };
+
+  if (loggedInUser) {
+    Nav("/feed");
+  }
 
   return (
     <div>
@@ -148,7 +132,7 @@ const Register = () => {
                     <div className="error-container">
                       {Object.entries(registerErrors).map(
                         ([field, message]) => (
-                          <p key={field} className="text-red-500">
+                          <div key={field} className="text-red-500">
                             {field === "email" &&
                               message === "User already registered." && (
                                 <p>
@@ -156,7 +140,7 @@ const Register = () => {
                                   email address.
                                 </p>
                               )}
-                          </p>
+                          </div>
                         )
                       )}
                     </div>

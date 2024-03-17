@@ -1,9 +1,10 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/userContext";
 import axios from "axios";
 
 const Login = () => {
+  const authToken = window.localStorage.getItem("userToken");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { setLoggedInUser } = useContext(UserContext);
@@ -12,6 +13,7 @@ const Login = () => {
 
   const loginHandler = (e) => {
     e.preventDefault();
+
     axios
       .post(
         "http://localhost:5000/login",
@@ -35,6 +37,11 @@ const Login = () => {
         setLoginErrors(err.response.data);
       });
   };
+
+  useEffect (() => {
+    if (authToken) {
+      Nav("/feed");
+    }[authToken, Nav]})
 
   return (
     <div>

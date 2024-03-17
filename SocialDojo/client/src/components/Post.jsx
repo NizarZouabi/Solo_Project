@@ -48,7 +48,12 @@ const Post = (props) => {
   
   const deleteComment = (commentId) => {
     axios
-      .delete(`http://localhost:5000/posts/${post._id}/remove/comment/${commentId}`)
+      .delete(`http://localhost:5000/posts/${post._id}/remove/comment/${commentId}`,{
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+        withCredentials: true,
+      })
       .then((res) => {
         setUserPosts(prevUserPosts => {
           return prevUserPosts.map(prevPost => {
@@ -75,7 +80,12 @@ const Post = (props) => {
     updatedFormData.append("file", file);
 
     axios
-      .patch(`http://localhost:5000/posts/${post._id}/update`, updatedFormData)
+      .patch(`http://localhost:5000/posts/${post._id}/update`, updatedFormData ,{
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+        withCredentials: true,
+      })
       .then((res) => {
         setUserPosts([...userPosts, res.data]);
         setTitle("");

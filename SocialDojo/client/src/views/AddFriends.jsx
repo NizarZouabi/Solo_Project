@@ -1,22 +1,27 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import Logout from "../components/Logout";
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../context/userContext";
 import axios from "axios";
 
 const AddFriends = () => {
+  const authToken = window.localStorage.getItem("userToken");
+  const Nav = useNavigate();
   const { loggedInUser } = useContext(UserContext);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const { userId } = useParams();
 
   useEffect(() => {
-    if (loggedInUser && loggedInUser._id) {
+    if (loggedInUser && loggedInUser._id && userId) {
       axios
         .get(
-          `http://localhost:5000/user/${userId}/find`,
-          { userId },
-          { withCredentials: true }
+          `http://localhost:5000/user/${userId}/find`,{
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+            withCredentials: true,
+          }
         )
         .then((res) => {
           console.log(res.data.users);
@@ -29,6 +34,10 @@ const AddFriends = () => {
         });
     }
   }, [loggedInUser, userId]);
+
+  if (!authToken) {
+    return (<p className="m-5 font-bold text-red-500">Please login to view this page.</p>)
+  }
 
   if (loading) {
     return (
@@ -80,12 +89,12 @@ const AddFriends = () => {
           height: "80%",
         }}
       >
-        <div>
+        <div className="display: grid grid-cols-3 overflow-auto w-full h-full">
           {loggedInUser && users.length > 0 ? (
             users.map((user, idx) => (
               <div
                 key={idx}
-                className="m-24 p-2 display: flex flex-row border rounded-full w-1/6 gap-5 bg-white hover:bg-blue-500 shadow text-gray-500 hover:text-white"
+                className="container m-24 p-2 display: flex flex-row border rounded-full w-1/6 gap-5 bg-white hover:bg-blue-500 shadow text-gray-500 hover:text-white" style={{ width: "250px", height: "68px" }}
               >
                 {user.profilePic &&
                 user.profilePic !==
@@ -112,7 +121,7 @@ const AddFriends = () => {
                 )}
                 <Link
                   to={`/user/${user._id}`}
-                  className="font-semibold text-xl mt-2 hover:underline"
+                  className="font-semibold text-xl mt-2 hover:underline overflow-hidden whitespace-nowrap overflow-ellipsis"
                 >
                   <span className="me-2">{user.firstName}</span>
                   <span className="">{user.lastName}</span>

@@ -78,22 +78,24 @@ exports.uploadBanner = (req, res) => {
 
 module.exports.register = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, password, confirmPassword, ...userData } = req.body;
+    if (password !== confirmPassword) {
+      return res.status(400).json({ errors: { confirmPassword: "Passwords do not match." } });
+    }
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res
-        .status(400)
-        .json({ errors: { email: "User already registered." } });
+      return res.status(400).json({ errors: { email: "User already registered." } });
     }
-    const user = await User.create(req.body);
+    const user = await User.create({ email, password, ...userData });
     const userToken = jwt.sign({ id: user._id, role: user.role }, key);
-    res
-      .cookie("userToken", userToken, { httpOnly: true })
+    res.cookie("userToken", userToken, { httpOnly: true })
       .json({ msg: "Registration complete!", user: user });
   } catch (err) {
     if (err.name === "ValidationError") {
       return res.status(400).json(err);
     }
+    console.error(err);
+    res.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -175,6 +177,7 @@ module.exports.getuser = (req, res) => {
         coverPic: user.coverPic,
         profilePic: user.profilePic,
         role: user.role,
+        pendingRequests: user.pendingRequests,
       };
       res.json({ user: userData });
     })
@@ -186,20 +189,51 @@ module.exports.sendFriendRequest = async (req, res) => {
     const userId = req.params.userId;
     const friendId = req.params.friendId;
     const [user, friend] = await Promise.all([
-      User.findById(userId),
-      User.findById(friendId),
+      User.findById(userId).select('firstName lastName profilePic'),
+      User.findById(friendId)
     ]);
-
+    console.log(user, friend);
     if (!user || !friend) {
       return res.status(404).json({ message: "User or friend not found." });
     }
-    if (user.pendingRequests.includes(friendId)) {
+    if (friend.pendingRequests.some(request => request.senderId.equals(userId))) {
       return res.status(400).json({ message: "Friend request already sent." });
     }
 
-    user.pendingRequests.push(friendId);
-    await user.save();
+    const senderInfo = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      profilePic: user.profilePic
+    };
+    friend.pendingRequests.push({
+      senderId: user._id,
+      sender: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profilePic: user.profilePic
+      }
+    });
+    await friend.save();
     res.status(200).json({ message: "Friend request sent successfully." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+module.exports.cancelFriendRequest = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const friendId = req.params.friendId;
+    const user = await User.findById(userId);
+    const friend = await User.findById(friendId);
+    if (!user || !friend) {
+      return res.status(404).json({ message: "User or friend not found." });
+    }
+
+    friend.pendingRequests = friend.pendingRequests.filter(request => !request.senderId.equals(userId));
+    await friend.save();
+    res.status(200).json({ message: "Friend request canceled successfully." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error." });

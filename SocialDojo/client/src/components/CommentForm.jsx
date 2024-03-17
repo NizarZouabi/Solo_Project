@@ -8,6 +8,7 @@ const CommentForm = (props) => {
   const [content, setContent] = useState("");
   const [errors, setErrors] = useState({});
   const [isError, setIsError] = useState(false)
+  const authToken = window.localStorage.getItem("userToken");
 
   useEffect(() => {
     console.log("Post ID: ", postId)
@@ -24,7 +25,12 @@ const CommentForm = (props) => {
       authorName: loggedInUser.firstName + " " + loggedInUser.lastName
     }
     
-    axios.patch(`http://localhost:5000/posts/${postId}/comment`, newComment)
+    axios.patch(`http://localhost:5000/posts/${postId}/comment`, newComment,{
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      withCredentials: true,
+    })
     .then((res) => {
       setUserPosts([...userPosts, res.data])
       reload()

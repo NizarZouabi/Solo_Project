@@ -6,10 +6,14 @@ const User = new mongoose.Schema(
     firstName: {
       type: String,
       required: [true, "First name is required."],
+      minlength: [3, "First name must be at least 3 characters long."],
+      maxlength: [46, "First name must be at most 46 characters long."],
     },
     lastName: {
       type: String,
       required: [true, "Last name is required."],
+      minlength: [3, "Last name must be at least 3 characters long."],
+      maxlength: [46, "Last name must be at most 46 characters long."],
     },
     email: {
       type: String,
@@ -19,6 +23,11 @@ const User = new mongoose.Schema(
         validator: (val) => /^([\w-\.]+@([\w-]+\.)+[\w-]+)?$/.test(val),
         message: "Please enter a valid email.",
       },
+    },
+    password: {
+      type: String,
+      required: [true, "Password is required."],
+      minlength: [8, "Password must be 8 characters or longer."],
     },
     birthdate: {
       type: Date,
@@ -35,11 +44,6 @@ const User = new mongoose.Schema(
         },
         message: "You must be at least 16 years old to register.",
       },
-    },
-    password: {
-      type: String,
-      required: [true, "Password is required."],
-      minlength: [8, "Password must be 8 characters or longer."],
     },
     role: {
       type: String,
@@ -58,8 +62,24 @@ const User = new mongoose.Schema(
       required: [true, "Gender is required."],
     },
     pendingRequests: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      sender: {
+        firstName: {
+          type: String,
+          required: true
+        },
+        lastName: {
+          type: String,
+          required: true
+        },
+        profilePic: {
+          type: String
+        }
+      },
+      senderId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      }
     }],
     friends: {
       type: [mongoose.Schema.Types.ObjectId],
@@ -81,31 +101,20 @@ const User = new mongoose.Schema(
   { timestamps: true }
 );
 
-User.virtual("confirmPassword")
-  .get(function () {
-    return this._confirmPassword;
-  })
-  .set(function (value) {
-    this._confirmPassword = value;
-  });
 
-User.pre("validate", function (next) {
-  if (this.password !== this.confirmPassword) {
-    this.invalidate("confirmPassword", "Password must match confirm password.");
+
+
+User.pre("save", async function (next) {
+  try {
+    if (!this.isModified("password")) {
+      return next();
+    }
+    const hashedPassword = await bcrypt.hash(this.password, 10);
+    this.password = hashedPassword;
+    next();
+  } catch (error) {
+    next(error);
   }
-  next();
-});
-
-User.pre("save", function (next) {
-  bcrypt
-    .hash(this.password, 10)
-    .then((hash) => {
-      this.password = hash;
-      next();
-    })
-    .catch((err) => {
-      next(err);
-    });
 });
 
 const UserSchema = mongoose.model("UserSchema", User);

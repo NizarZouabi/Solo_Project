@@ -4,12 +4,13 @@ import Logout from "../components/Logout";
 import FriendsList from "../components/FriendsList";
 import PostModal from "../components/PostModal";
 import { UserContext } from "../context/userContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useContext, useState, useEffect } from "react";
 import axios from "axios";
 import Post from "../components/Post";
 
 const Feed = (props) => {
+  const Nav = useNavigate();
   const [loading, setLoading] = useState(false);
   // const { sharedPosts, setSharedPosts } = props
   const { loggedInUser } = useContext(UserContext);
@@ -20,6 +21,9 @@ const Feed = (props) => {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     useEffect(() => {
+      if (!loggedInUser) {
+        Nav("/login");
+      }
       if (!loading && loggedInUser) {
         axios
           .get(`http://localhost:5000/posts/user/${loggedInUser._id}`, {
@@ -46,6 +50,10 @@ const Feed = (props) => {
         Loading Data...
       </div>
     );
+  }
+
+  if (!authToken) {
+    return (<p className="m-5 font-bold text-red-500">Please login to view this page.</p>)
   }
 
   return (
