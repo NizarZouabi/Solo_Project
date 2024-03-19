@@ -1,4 +1,5 @@
-const Post = require("../models/post.model");
+const Post = require('../models/post.model.js');
+const User = require('../models/user.model.js');
 const multer = require("multer");
 const path = require("path");
 
@@ -84,15 +85,23 @@ module.exports.findOnePost = (req, res) => {
     .catch((err) => res.status(400).json(err));
 };
 
-module.exports.findUserPosts = (req, res) => {
-  const userId = req.params.userId;
+module.exports.findUserAndFriendsPosts = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const user = await User.findById(userId).populate('friends.userId');
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    const friendIds = user.friends.map(friend => friend.userId);
+    const userPosts = await Post.find({ author: userId }).populate('author');
+    const friendsPosts = await Post.find({ author: { $in: friendIds } }).populate('author');
+    const allPosts = [...userPosts, ...friendsPosts];
 
-  Post.find({ author: userId })
-    .then((userPosts) => {
-      console.log(userPosts);
-      res.json({ userPosts });
-    })
-    .catch((err) => res.status(400).json(err));
+    res.json({ userPosts, allPosts });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error." });
+  }
 };
 
 module.exports.addStar = (req, res) => {

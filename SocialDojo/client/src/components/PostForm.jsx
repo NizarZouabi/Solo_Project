@@ -3,14 +3,13 @@ import { UserContext } from "../context/userContext";
 import axios from "axios";
 
 const PostForm = (props) => {
-  // const authToken = localStorage.getItem('userToken')
   const { loggedInUser } = useContext(UserContext);
   const [errors, setErrors] = useState({});
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [author] = useState(loggedInUser._id);
   const [file, setFile] = useState(null);
-  const { userPosts, setUserPosts } = props
+  const { userPosts, setUserPosts, allPosts, setAllPosts } = props
   const authToken = window.localStorage.getItem("userToken");
   // const { sharedPosts, setSharedPosts } = props
 
@@ -30,15 +29,17 @@ const PostForm = (props) => {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
-        withCredentials: true,
+        withCredentials: true
       })
       .then((res) => {
         console.log(res.data);
         setUserPosts([...userPosts, res.data.newPost]);
+        reload();
+        setAllPosts([...allPosts, res.data.newPost]);
+        reload();
         setTitle("");
         setContent("");
         setFile(null);
-        reload();
       })
       .catch((err) => {
         setErrors(err.response);

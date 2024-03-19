@@ -71,7 +71,7 @@ const AddFriends = () => {
             Profile
           </Link>
           <Link
-            to={`/feed`}
+            to={`/posts/user/${loggedInUser._id}/feed`}
             className="bg-gray-500 shadow-md hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full"
           >
             Your feed
@@ -130,7 +130,7 @@ const AddFriends = () => {
             ))
           ) : (
             <div>
-              <p>No other users available yet.</p>
+              <p className="m-5 font-bold">No other users available yet.</p>
             </div>
           )}
         </div>

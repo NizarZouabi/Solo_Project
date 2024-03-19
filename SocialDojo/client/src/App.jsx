@@ -9,7 +9,7 @@ import './App.css'
 
 function App() {
   const [userPosts, setUserPosts] = useState([])
-  // const [sharedPosts, setSharedPosts] = useState([])
+  const [allPosts, setAllPosts] = useState([])
 
   return (
     <Routes>
@@ -17,12 +17,10 @@ function App() {
 
       <Route path="/login" element={<Login />} />
       
-      <Route path="/feed" element={<Feed userPosts={userPosts} setUserPosts={setUserPosts}
-        // sharedPosts={sharedPosts} setSharedPosts={setSharedPosts}
+      <Route path="/posts/user/:userId/feed" element={<Feed userPosts={userPosts} setUserPosts={setUserPosts} 
       />} />
 
       <Route path="/user/:userId" element={<Profile userPosts={userPosts} setUserPosts={setUserPosts}
-          // sharedPosts={sharedPosts} setSharedPosts={setSharedPosts}
       />} />
 
       <Route path="/user/:userId/find" element={<AddFriends />} />

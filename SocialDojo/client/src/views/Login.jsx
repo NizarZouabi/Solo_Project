@@ -9,6 +9,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const { setLoggedInUser } = useContext(UserContext);
   const [loginErrors, setLoginErrors] = useState({});
+  const { loggedInUser } = useContext(UserContext);
   const Nav = useNavigate();
 
   const loginHandler = (e) => {
@@ -26,11 +27,12 @@ const Login = () => {
       .then((res) => {
         window.localStorage.setItem("userToken", res.data.token);
         window.localStorage.setItem("userId", res.data.user.userId);
+        const userId = window.localStorage.getItem("userId");
         console.log(res.data);
         setEmail("");
         setPassword("");
         setLoggedInUser(res.data.user);
-        Nav("/feed");
+        Nav(`/posts/user/${userId}/feed`);
       })
       .catch((err) => {
         console.log(err);
@@ -40,7 +42,8 @@ const Login = () => {
 
   useEffect (() => {
     if (authToken) {
-      Nav("/feed");
+      const userId = window.localStorage.getItem("userId");
+      Nav(`/posts/user/${userId}/feed`);
     }[authToken, Nav]})
 
   return (
@@ -100,14 +103,14 @@ const Login = () => {
                   New here?{" "}
                   <a
                     href="/"
-                    className="font-medium text-primary-600 hover:underline dark:text-blue-500"
+                    className="font-medium text-primary-600 hover:underline text-violet-600"
                   >
                     Create an account
                   </a>
                 </p>
                 <button
                   type="submit"
-                  className="w-full text-white bg-blue-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+                  className="w-full text-white bg-violet-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
                 >
                   Connect
                 </button>

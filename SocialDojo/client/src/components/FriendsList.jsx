@@ -1,13 +1,36 @@
 import { Link } from "react-router-dom";
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 import { UserContext } from "../context/userContext";
+import axios from "axios";
 
 const FriendsList = () => {
     const { loggedInUser } = useContext(UserContext);
+    const authToken = window.localStorage.getItem("userToken");
+    const [user, setUser] = useState({});
+
+    useEffect(() => {
+      if (loggedInUser && loggedInUser._id) {
+        axios
+          .get(`http://localhost:5000/user/${loggedInUser._id}`, {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+            withCredentials: true,
+          })
+          .then((res) => {
+            setUser(res.data.user);
+            console.log(res.data.user);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    }, [loggedInUser._id]);
+
   return (
     <div>
       <div
-        className="border-r border-black p-2 bg-gray-300"
+        className="border-r border-black p-2 bg-gray-300 z-10"
         style={{ position: "fixed", top: "0", left: "0", overflowX: "hidden" }}
       >
         <div>
@@ -28,11 +51,14 @@ const FriendsList = () => {
           style={{ height: "88vh" }}
         >
           <ul
-            className="display-flex gap-2 text-xl ps-4"
+            className=""
             style={{ height: "92vh" }}
           >
-            <div className=""></div>
-            <li className="p-2 font-bold">Friend</li>
+            {user.friends && user.friends.map((friend, idx) => (
+              <li key={idx} className="p-2 font-bold display: flex flex-row gap-5 w-60">
+                {friend.profilePic ? <img className="rounded-full" src={`http://localhost:5000/public/images/${friend.profilePic}`} style={{ width: "40px", height: "40px" }} /> : <img className="rounded-full" src="https://avatarfiles.alphacoders.com/239/239030.jpg" style={{ width: "40px", height: "40px" }} />}<Link className="text-black hover:underline hover:text-green-500 overflow-hidden whitespace-nowrap overflow-ellipsis text-lg mt-1 w-5/6" to={`/user/${friend.userId}`}>{`${friend.firstName} ${friend.lastName}`}</Link>
+              </li>
+            ))}
           </ul>
         </div>
         <div className="display: flex flex-row gap-2 mx-10 mb-1 p-3 bottom-0">

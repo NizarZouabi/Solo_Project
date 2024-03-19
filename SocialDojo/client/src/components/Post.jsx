@@ -1,13 +1,14 @@
 import { formatDistanceToNow } from "date-fns";
 import { UserContext } from "../context/userContext";
 import { useContext, useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import Model from "react-modal";
 import axios from "axios";
 import CommentForm from "./CommentForm";
 
 const Post = (props) => {
   const [commentId, setCommentId] = useState("");
-  const { post, user, profilePic, userPosts, setUserPosts } = props;
+  const { post, user, userPosts, setUserPosts, allPosts, setAllPosts} = props;
   const { loggedInUser } = useContext(UserContext);
   const authToken = window.localStorage.getItem("userToken");
   const formattedDate = formatDistanceToNow(new Date(post.createdAt), {
@@ -25,11 +26,9 @@ const Post = (props) => {
     setUserPosts(userPosts.filter((post) => post._id !== postId));
   };
 
-  useEffect(() => {
-    if (post) {
-      console.log("Post File: ", post.file);
-    }
-  });
+  const removeFromFeed = (postId) => {
+    setAllPosts(allPosts.filter((post) => post._id !== postId));
+  };
 
   const removePost = () => {
     axios
@@ -41,6 +40,7 @@ const Post = (props) => {
       })
       .then((res) => {
         removeFromDom(post._id);
+        removeFromFeed(post._id);
         console.log(res);
       })
       .catch((err) => console.log(err));
@@ -87,7 +87,8 @@ const Post = (props) => {
         withCredentials: true,
       })
       .then((res) => {
-        setUserPosts([...userPosts, res.data]);
+        setUserPosts([...userPosts, res.data.newPost]);
+        setSortedPosts([...sortedPosts, res.data.newPost]);
         setTitle("");
         setContent("");
         setFile(null);
@@ -103,7 +104,7 @@ const Post = (props) => {
     <div>
       <div>
         <div
-          className="bg-gray-50 mt-48 mb-10 shadow-md border border-solid border-gray-400 rounded-lg position: sticky"
+          className="bg-gray-50 mt-28 mb-10 shadow-md border border-solid border-gray-400 rounded-lg position: sticky"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -113,12 +114,12 @@ const Post = (props) => {
         >
           <div className="bg-gray-200 shadow border-b border-solid border-gray-400 display: flex flex-column align-items-center">
             <span className="border-b border-solid border-gray-400 w-full text-transparent position: absolute top-14 left-0"></span>
-            {profilePic &&
-            profilePic !==
+            {user.profilePic &&
+            user.profilePic !==
               "https://avatarfiles.alphacoders.com/239/239030.jpg" ? (
               <img
                 className="border border-solid border-gray-400 rounded-full"
-                src={`http://localhost:5000/public/images/${profilePic}`}
+                src={`http://localhost:5000/public/images/${user.profilePic}`}
                 style={{
                   position: "sticky",
                   top: "0.1%",
@@ -130,25 +131,25 @@ const Post = (props) => {
               />
             ) : (
               <img
-                className="border border-solid border-gray-400 rounded-full"
+              className="border border-solid border-gray-400 rounded-full"
                 src="https://avatarfiles.alphacoders.com/239/239030.jpg"
                 style={{
                   position: "sticky",
                   top: "0.1%",
                   left: "0.1%",
-                  width: "10%",
-                  height: "23%",
+                  width: "100px",
+                  height: "100px",
                   objectFit: "fill",
                 }}
               />
             )}
             <div className="text-center m-3">
               <h1 className="position: absolute left-32 text-2xl font-bold">
-                {user.firstName} {user.lastName}
+              <Link to={`/user/${post.author._id}`}>{user.firstName} {user.lastName}</Link>
               </h1>
               <div className="">
                 <div className="position: absolute right-52">
-                  {loggedInUser._id == post.author ? (
+                  {loggedInUser._id == post.author._id ? (
                     <div>
                       <button
                         className="hover:underline text-sm text-green-600 me-1"
@@ -295,7 +296,7 @@ const Post = (props) => {
                   >
                     {post.comments.length > 0 ? (
                       post.comments.map((comment, idx) => (
-                        <div key={idx} className="display: flex flex-row">
+                        <div key={idx} className="display: flex flex-row gap-2">
                           {!comment.pfp ? (
                             <img
                               className="border border-solid border-gray-400 rounded-full my-1"
@@ -311,7 +312,7 @@ const Post = (props) => {
                           )}
                           <div className=" dislpay: flex flex-col position: sticky left-12" style={{ width: "100%", height: "auto" }}>
                             <h5 className="text-lg font-semibold">
-                              {comment.authorName}
+                              <Link to={`/user/${comment.author}`}>{comment.authorName}</Link>
                             </h5>
                             <div className="display: flex flex-row">
                               {loggedInUser._id == comment.author ? (<div><p

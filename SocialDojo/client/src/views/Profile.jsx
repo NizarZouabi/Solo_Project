@@ -19,10 +19,10 @@ const Profile = (props) => {
   // const { sharedPosts, setSharedPosts } = props
   const authToken = window.localStorage.getItem("userToken");
   const { loggedInUser } = useContext(UserContext);
+  const { userPosts, setUserPosts } = props;
   const [user, setUser] = useState({});
   const [profilePic, setProfilePic] = useState(null);
   const [coverPic, setCoverPic] = useState(null);
-  const { userPosts, setUserPosts } = props;
   const [loading, setLoading] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
   const sortedPosts = userPosts
@@ -30,6 +30,10 @@ const Profile = (props) => {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const reload = () => window.location.reload();
+
+  const getGenderPronoun = (gender) => {
+    return gender === "Male" ? "his" : gender === "Female" ? "her" : null;
+  };
 
   const pfpSubmitHandler = (e) => {
     e.preventDefault();
@@ -39,7 +43,7 @@ const Profile = (props) => {
 
     axios
       .patch(
-        `http://localhost:5000/user/${userId}/pfp/upload`,
+        `http://localhost:5000/user/${loggedInUser._id}/pfp/upload`,
         profileFormData,
         {
           headers: {
@@ -128,7 +132,7 @@ const Profile = (props) => {
           }
         )
         .then((res) => {
-          console.log(res.data)
+          console.log(res.data);
           reload();
         })
         .catch((err) => {
@@ -160,25 +164,29 @@ const Profile = (props) => {
       });
   };
 
-  const addFriend = (e) => {
+  const removeFriend = (e) => {
     e.preventDefault();
 
-    axios
-      .post(`http://localhost:5000/user/${loggedInUser._id}/friend/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-        withCredentials: true,
-      })
-      .then((res) => {
-        setUserFriends([...userFriends, res.data]);
-      });
-  };
+    axios.patch(`http://localhost:5000/user/${loggedInUser._id}/friend/${userId}/remove`,
+    {},
+    {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+      withCredentials: true,
+    }
+  ).then((res) => {
+    reload()
+    console.log(res.data);
+  }).catch((err) => {
+    console.error(err);
+  })
+  }
 
   useEffect(() => {
     if (!loading && userId) {
       axios
-        .get(`http://localhost:5000/posts/user/${userId}`, {
+        .get(`http://localhost:5000/posts/user/${userId}/feed`, {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
@@ -186,15 +194,21 @@ const Profile = (props) => {
         })
         .then((res) => {
           setUserPosts(res.data.userPosts);
-          setLoading(false);
           console.log(res.data.userPosts);
+          setLoading(false);
         })
         .catch((err) => {
           console.log(err);
           setLoading(false);
         });
     }
-  }, [setUserPosts, loading, authToken, userId]);
+  }, [loggedInUser, userId, authToken, loading, setUserPosts]);
+
+  const birthdate = (date) => {
+    let d = new Date(date);
+    let options = { month: "long", day: "numeric", year: "numeric" };
+    return d.toLocaleString("en-US", options);
+  };
 
   if (loading) {
     return (
@@ -205,7 +219,11 @@ const Profile = (props) => {
   }
 
   if (!authToken) {
-    return (<p className="m-5 font-bold text-red-500">Please login to view this page.</p>)
+    return (
+      <p className="m-5 font-bold text-red-500">
+        Please login to view this page.
+      </p>
+    );
   }
 
   return (
@@ -259,13 +277,14 @@ const Profile = (props) => {
               textShadowOffset: { width: "-1%", height: "1%" },
               textShadowRadius: "5%",
             }}
-          >
-            {user.firstName} {user.lastName}
+          >{user.firstName} {user.lastName}
           </h2>
         </div>
-        {loggedInUser._id == user._id && <div className="position: absolute ms-40 mt-28">
-          <Requests/>
-        </div>}
+        {loggedInUser._id == user._id && (
+          <div className="position: absolute mt-28">
+            <Requests />
+          </div>
+        )}
         <div className="">
           <div className="display: flex justify-end gap-5 position: sticky">
             {loggedInUser._id !== user._id ? (
@@ -276,12 +295,12 @@ const Profile = (props) => {
                 Profile
               </Link>
             ) : null}
-            <a
+            <Link
+              to={`/posts/user/${loggedInUser._id}/feed`}
               className="bg-gray-500 shadow-md hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-full"
-              href="/feed"
             >
               Your feed
-            </a>
+            </Link>
             <Logout />
           </div>
           <div className="display: flex justify-end">
@@ -297,12 +316,24 @@ const Profile = (props) => {
             {loggedInUser._id !== user._id &&
               user &&
               user.pendingRequests &&
-              (user.pendingRequests.some(request => request.senderId === loggedInUser._id) ? (
+              (user.pendingRequests.some(
+                (request) => request.senderId === loggedInUser._id
+              ) ? (
                 <button
                   className="bg-gray-500 shadow-md hover:bg-gray-400 text-white font-semibold py-2 px-4 rounded-full position: absolute mt-20 me-32"
                   onClick={cancelRequest}
                 >
                   Cancel
+                </button>
+              ) : user.friends &&
+                user.friends.some(
+                  (friend) => friend.userId === loggedInUser._id
+                ) ? (
+                <button
+                  className="bg-red-500 shadow-md hover:bg-red-400 text-white font-semibold py-2 px-4 rounded-full position: absolute mt-20 me-32"
+                  onClick={removeFriend}
+                >
+                  Remove Friend
                 </button>
               ) : (
                 <button
@@ -312,6 +343,7 @@ const Profile = (props) => {
                   Add Friend
                 </button>
               ))}
+
             <Model
               ariaHideApp={false}
               isOpen={visibleBanner}
@@ -448,34 +480,91 @@ const Profile = (props) => {
         </div>
       </div>
 
-      <div className="position absolute top-24">
+      <div className="" style={{ position: "relative", top: "0" }}>
         {loggedInUser._id == user._id ? (
           <PostModal userPosts={userPosts} setUserPosts={setUserPosts} />
         ) : null}
         <FriendsList />
       </div>
 
-      {loggedInUser && sortedPosts.length > 0 ? (
-        sortedPosts.map((post, idx) => (
-          <Post
-            key={idx}
-            post={post}
-            user={user}
-            profilePic={profilePic}
-            userPosts={userPosts}
-            setUserPosts={setUserPosts}
-          />
-        ))
+      {loggedInUser._id === user._id ? (
+        <div>
+          {sortedPosts.length > 0 ? (
+            sortedPosts.map((profilePost, idx) => (
+              <Post
+                key={idx}
+                post={profilePost}
+                user={user}
+                profilePic={profilePic}
+                userPosts={userPosts}
+                setUserPosts={setUserPosts}
+              />
+            ))
+          ) : (
+            <div>
+              {userPosts.length === 0 && (
+                <p
+                  className="bg-gray-50 mt-48 mb-10 text-center position: sticky"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    marginLeft: "27.5%",
+                    width: "60%",
+                  }}
+                >
+                  No posts yet.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       ) : (
         <div>
-          <p
-            className="text-center"
-            style={{ position: "absolute", top: "50%", left: "55%" }}
-          >
-            No posts yet.
-          </p>
+          {user.friends &&
+          !user.friends.some((friend) => friend.userId === loggedInUser._id) ? (
+            <p
+              className="bg-gray-50 mt-48 mb-10 text-center position: sticky"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                marginLeft: "27.5%",
+                width: "60%",
+              }}
+            >
+              Add this user as a friend to see {getGenderPronoun(user.gender)}{" "}
+              posts.
+            </p>
+          ) : sortedPosts.length > 0 ? (
+            sortedPosts.map((profilePost, idx) => (
+              <Post
+                key={idx}
+                post={profilePost}
+                user={user}
+                profilePic={profilePic}
+                userPosts={userPosts}
+                setUserPosts={setUserPosts}
+              />
+            ))
+          ) : (
+            <p
+              className="bg-gray-50 mt-48 mb-10 text-center position: sticky"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                marginLeft: "27.5%",
+                width: "60%",
+              }}
+            >
+              No posts yet.
+            </p>
+          )}
         </div>
       )}
+      <div className="display: flex justify-center ms-72 mb-10 font-semibold text-xl text-gray-500">
+        <p>
+          {user.gender}, Born at {birthdate(user.birthdate)}
+        </p>
+      </div>
     </div>
   );
 };

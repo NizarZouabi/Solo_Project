@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
-const User = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
@@ -52,13 +52,15 @@ const User = new mongoose.Schema(
     },
     profilePic: {
       type: String,
+      default: null,
     },
     coverPic: {
       type: String,
+      default: null,
     },
     gender: {
       type: String,
-      enum: ["male", "female"],
+      enum: ["Male", "Female"],
       required: [true, "Gender is required."],
     },
     pendingRequests: [{
@@ -81,10 +83,26 @@ const User = new mongoose.Schema(
         required: true
       }
     }],
-    friends: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "User",
-    },
+    friends: [
+      {
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true
+        },
+        firstName: {
+          type: String,
+          required: true
+        },
+        lastName: {
+          type: String,
+          required: true
+        },
+        profilePic: {
+          type: String
+        }
+      }
+    ],
     sharedPosts: [
       {
         postId: {
@@ -104,7 +122,7 @@ const User = new mongoose.Schema(
 
 
 
-User.pre("save", async function (next) {
+userSchema.pre("save", async function (next) {
   try {
     if (!this.isModified("password")) {
       return next();
@@ -117,5 +135,5 @@ User.pre("save", async function (next) {
   }
 });
 
-const UserSchema = mongoose.model("UserSchema", User);
-module.exports = UserSchema;
+const User = mongoose.model('User', userSchema);
+module.exports = User;

@@ -11,6 +11,6 @@ module.exports = (app) => {
   app.patch("/user/:userId/banner/upload", authenticate ,UserController.uploadBanner);
   app.patch("/user/:userId/invite/:friendId", authenticate ,UserController.sendFriendRequest);
   app.patch("/user/:userId/friend/:friendId/cancel", authenticate ,UserController.cancelFriendRequest);
-  app.post("/user/:userId/friend/:friendId", authenticate ,UserController.addFriend);
+  app.post("/user/:userId/friend/:senderId/add", authenticate ,UserController.addFriend);
   app.patch("/user/:userId/friend/:friendId/remove", authenticate, UserController.removeFriend);
 };

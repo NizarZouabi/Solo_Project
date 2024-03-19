@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { UserContext } from "../context/userContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -17,6 +17,11 @@ const Register = () => {
   });
   const [passwordMatchError, setPasswordMatchError] = useState("");
   const [registerErrors, setRegisterErrors] = useState({});
+  const authToken = window.localStorage.getItem("userToken");
+
+  const capitalizeFirstLetter = (string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -29,8 +34,8 @@ const Register = () => {
       .post(
         "http://localhost:5000/register",
         {
-          firstName: userForm.firstName,
-          lastName: userForm.lastName,
+          firstName: capitalizeFirstLetter(userForm.firstName),
+          lastName: capitalizeFirstLetter(userForm.lastName),
           email: userForm.email,
           birthdate: userForm.birthdate,
           gender: userForm.gender,
@@ -49,9 +54,10 @@ const Register = () => {
       });
   };
 
-  if (loggedInUser) {
-    Nav("/feed");
-  }
+  useEffect (() => {
+    if (authToken) {
+      Nav(`posts/user/${loggedInUser._id}/feed`);
+    }[authToken, Nav]})
 
   return (
     <div>
@@ -214,9 +220,9 @@ const Register = () => {
                     <input
                       className="mb-2"
                       type="radio"
-                      id="male"
+                      id="Male"
                       name="gender"
-                      value="male"
+                      value="Male"
                       onChange={(e) =>
                         setUserForm({ ...userForm, gender: e.target.value })
                       }
@@ -227,9 +233,9 @@ const Register = () => {
                     <input
                       className="mb-2"
                       type="radio"
-                      id="female"
+                      id="Female"
                       name="gender"
-                      value="female"
+                      value="Female"
                       onChange={(e) =>
                         setUserForm({ ...userForm, gender: e.target.value })
                       }
@@ -248,13 +254,13 @@ const Register = () => {
                   Already have an account?{" "}
                   <a
                     href="/login"
-                    className="font-medium text-primary-600 hover:underline dark:text-blue-500"
+                    className="font-medium text-primary-600 hover:underline text-violet-600"
                   >
                     Login here
                   </a>
                 </p>
-                <button className="w-full text-white bg-blue-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
-                  Create an account
+                <button className="w-full text-white bg-violet-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
+                  Register
                 </button>
               </form>
             </div>

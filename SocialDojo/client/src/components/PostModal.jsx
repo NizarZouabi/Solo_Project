@@ -4,9 +4,9 @@ import { useState } from "react";
 
 const PostModal = (props) => {
   const [visible, setVisible] = useState(false);
-  const { userPosts, setUserPosts } = props;
+  const { userPosts, setUserPosts, allPosts, setAllPosts } = props;
   return (
-    <div className="container position: absolute top-0 md:left-36 w-full md:w-auto mt-48">
+    <div className="container display: flex ms-48 w-full md:w-auto mt-24">
       <input
         className="container relative top-0 md:left-80 w-full md:w-auto px-5 py-1 mt-10 bg-white border rounded-xl border-gray-400 shadow-md outline-yellow-200 ms-80"
         style={{ position: "sticky", width: "1300px" }}
@@ -40,7 +40,7 @@ const PostModal = (props) => {
         >
           x
         </button>
-        <PostForm userPosts={userPosts} setUserPosts={setUserPosts}  />
+        <PostForm userPosts={userPosts} setUserPosts={setUserPosts} allPosts={allPosts} setAllPosts={setAllPosts} />
       </Model>
     </div>
   );
