@@ -40,7 +40,12 @@ const PostModal = (props) => {
         >
           x
         </button>
-        <PostForm userPosts={userPosts} setUserPosts={setUserPosts} allPosts={allPosts} setAllPosts={setAllPosts} />
+        <PostForm
+          userPosts={userPosts}
+          setUserPosts={setUserPosts}
+          allPosts={allPosts}
+          setAllPosts={setAllPosts}
+        />
       </Model>
     </div>
   );

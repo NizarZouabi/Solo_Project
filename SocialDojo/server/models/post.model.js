@@ -40,16 +40,20 @@ const postSchema = new mongoose.Schema(
           type: String,
           required: true,
         },
-        stars: {
-          type: Number,
-          default: 0
-        },
+        stars: [
+          {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+          },
+        ],
       },
     ],
-    stars: {
-      type: Number,
-      default: 0,
-    },
+    stars: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     sharedCount: {
       type: Number,
       default: 0,

@@ -115,6 +115,32 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
+    chats: [
+      {
+        withUser: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true
+        },
+        messages: [
+          {
+            senderId: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: 'User',
+              required: true
+            },
+            content: {
+              type: String,
+              required: true
+            },
+            timestamp: {
+              type: Date,
+              default: Date.now
+            }
+          }
+        ]
+      }
+    ]
   },
   { timestamps: true }
 );

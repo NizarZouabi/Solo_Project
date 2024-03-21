@@ -8,7 +8,7 @@ import CommentForm from "./CommentForm";
 
 const Post = (props) => {
   const [commentId, setCommentId] = useState("");
-  const { post, user, userPosts, setUserPosts, allPosts, setAllPosts} = props;
+  const { post, user, userPosts, setUserPosts, allPosts, setAllPosts } = props;
   const { loggedInUser } = useContext(UserContext);
   const authToken = window.localStorage.getItem("userToken");
   const formattedDate = formatDistanceToNow(new Date(post.createdAt), {
@@ -21,6 +21,7 @@ const Post = (props) => {
   const [file, setFile] = useState(null);
   const [visible, setVisible] = useState(false);
   const [commentVisible, setCommentVisible] = useState(false);
+  const reload = () => window.location.reload();
 
   const removeFromDom = (postId) => {
     setUserPosts(userPosts.filter((post) => post._id !== postId));
@@ -28,6 +29,35 @@ const Post = (props) => {
 
   const removeFromFeed = (postId) => {
     setAllPosts(allPosts.filter((post) => post._id !== postId));
+  };
+
+  const addStar = () => {
+    axios
+      .patch(
+        `http://localhost:5000/posts/user/${loggedInUser._id}/addstar/${post._id}`
+      )
+      .then((res) => {
+        console.log(res);
+        setAllPosts([...allPosts, res.data]);
+        setUserPosts([...userPosts, res.data]);
+        reload(); //workaround until undefined updated post values on passed props is fixed
+        console.log(res.data.post.createdAt);
+      })
+      .catch((err) => console.log(err));
+  };
+
+  const removeStar = () => {
+    axios
+      .patch(
+        `http://localhost:5000/posts/user/${loggedInUser._id}/removestar/${post._id}`
+      )
+      .then((res) => {
+        console.log(res);
+        setAllPosts([...allPosts, res.data]);
+        setUserPosts([...userPosts, res.data]);
+        reload(); //workaround until undefined updated post values on passed props is fixed
+      })
+      .catch((err) => console.log(err));
   };
 
   const removePost = () => {
@@ -45,21 +75,42 @@ const Post = (props) => {
       })
       .catch((err) => console.log(err));
   };
-  
+
   const deleteComment = (commentId) => {
     axios
-      .delete(`http://localhost:5000/posts/${post._id}/remove/comment/${commentId}`,{
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-        withCredentials: true,
-      })
+      .delete(
+        `http://localhost:5000/posts/${post._id}/remove/comment/${commentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+          withCredentials: true,
+        }
+      )
       .then((res) => {
-        setUserPosts(prevUserPosts => {
-          return prevUserPosts.map(prevPost => {
+        setUserPosts((prevUserPosts) => {
+          return prevUserPosts.map((prevPost) => {
             if (prevPost._id === post._id) {
               return {
-                ...prevPost, comments: prevPost.comments.filter(comment => comment._id !== commentId)};}
+                ...prevPost,
+                comments: prevPost.comments.filter(
+                  (comment) => comment._id !== commentId
+                ),
+              };
+            }
+            return prevPost;
+          });
+        });
+        setAllPosts((prevPosts) => {
+          return prevPosts.map((prevPost) => {
+            if (prevPost._id === post._id) {
+              return {
+                ...prevPost,
+                comments: prevPost.comments.filter(
+                  (comment) => comment._id !== commentId
+                ),
+              };
+            }
             return prevPost;
           });
         });
@@ -80,12 +131,16 @@ const Post = (props) => {
     updatedFormData.append("file", file);
 
     axios
-      .patch(`http://localhost:5000/posts/${post._id}/update`, updatedFormData ,{
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-        withCredentials: true,
-      })
+      .patch(
+        `http://localhost:5000/posts/${post._id}/update`,
+        updatedFormData,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+          withCredentials: true,
+        }
+      )
       .then((res) => {
         setUserPosts([...userPosts, res.data.newPost]);
         setSortedPosts([...sortedPosts, res.data.newPost]);
@@ -131,7 +186,7 @@ const Post = (props) => {
               />
             ) : (
               <img
-              className="border border-solid border-gray-400 rounded-full"
+                className="border border-solid border-gray-400 rounded-full"
                 src="https://avatarfiles.alphacoders.com/239/239030.jpg"
                 style={{
                   position: "sticky",
@@ -145,7 +200,9 @@ const Post = (props) => {
             )}
             <div className="text-center m-3">
               <h1 className="position: absolute left-32 text-2xl font-bold">
-              <Link to={`/user/${post.author._id}`}>{user.firstName} {user.lastName}</Link>
+                <Link to={`/user/${post.author._id}`}>
+                  {user.firstName} {user.lastName}
+                </Link>
               </h1>
               <div className="">
                 <div className="position: absolute right-52">
@@ -310,31 +367,58 @@ const Post = (props) => {
                               style={{ width: "40px", height: "40px" }}
                             ></img>
                           )}
-                          <div className=" dislpay: flex flex-col position: sticky left-12" style={{ width: "100%", height: "auto" }}>
+                          <div
+                            className=" dislpay: flex flex-col position: sticky left-12"
+                            style={{ width: "100%", height: "auto" }}
+                          >
                             <h5 className="text-lg font-semibold">
-                              <Link to={`/user/${comment.author}`}>{comment.authorName}</Link>
+                              <Link to={`/user/${comment.author}`}>
+                                {comment.authorName}
+                              </Link>
                             </h5>
                             <div className="display: flex flex-row">
-                              {loggedInUser._id == comment.author ? (<div><p
-                                className="container border rounded-lg px-3  bg-white"
-                                style={{ height: "auto", minWidth: "50px", maxWidth:"400px"  ,overflowWrap: "break-word" }}
-                              >
-                                {comment.content}
-                              </p><span className="text-red-500 hover:underline cursor-pointer" onClick={() => deleteComment(comment._id)}>Delete</span></div>) : (<p
-                                className="container border rounded-lg px-3  bg-white"
-                                style={{ height: "auto", minWidth: "50px" , maxWidth:"400px" , overflowWrap: "break-word"}}
-                              >
-                                {comment.content}
-                              </p>)}
+                              {loggedInUser._id == comment.author ? (
+                                <div>
+                                  <p
+                                    className="container border rounded-lg px-3  bg-white"
+                                    style={{
+                                      height: "auto",
+                                      minWidth: "50px",
+                                      maxWidth: "400px",
+                                      overflowWrap: "break-word",
+                                    }}
+                                  >
+                                    {comment.content}
+                                  </p>
+                                  <span
+                                    className="text-red-500 hover:underline cursor-pointer"
+                                    onClick={() => deleteComment(comment._id)}
+                                  >
+                                    Delete
+                                  </span>
+                                </div>
+                              ) : (
+                                <p
+                                  className="container border rounded-lg px-3  bg-white"
+                                  style={{
+                                    height: "auto",
+                                    minWidth: "50px",
+                                    maxWidth: "400px",
+                                    overflowWrap: "break-word",
+                                  }}
+                                >
+                                  {comment.content}
+                                </p>
+                              )}
                               <div className="display: flex flex-row">
-                              <p className="ms-2">0</p>
-                              <button className="mb-5">
-                                <img
-                                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/2011px-Star_empty.svg.png"
-                                  className="position: sticky ms-2"
-                                  style={{ height: "30px", width: "30px" }}
-                                />
-                              </button>
+                                <p className="ms-2">0</p>
+                                <button className="mb-5">
+                                  <img
+                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/2011px-Star_empty.svg.png"
+                                    className="position: sticky ms-2"
+                                    style={{ height: "30px", width: "30px" }}
+                                  />
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -386,19 +470,29 @@ const Post = (props) => {
                 <input
                   className="shadow-md border border-solid border-gray-400 rounded-lg"
                   type="text"
-                  style={{ height: "3.5vh"}}
+                  style={{ height: "3.5vh" }}
                   onClick={() => setCommentVisible(true)}
                 />
                 <div className="display: flex flex-row">
-                              <p className="ms-2">0</p>
-                              <button className="mb-5">
-                                <img
-                                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/2011px-Star_empty.svg.png"
-                                  className="position: sticky ms-2"
-                                  style={{ height: "30px", width: "30px" }}
-                                />
-                              </button>
-                              </div>
+                  <p className="ms-2">{post.stars.length}</p>
+                  {post.stars && !post.stars.includes(loggedInUser._id) ? (
+                    <button className="mb-5" onClick={addStar}>
+                      <img
+                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/2011px-Star_empty.svg.png"
+                        className="position: sticky ms-2"
+                        style={{ height: "30px", width: "30px" }}
+                      />
+                    </button>
+                  ) : (
+                    <button className="mb-5" onClick={removeStar}>
+                      <img
+                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/1005px-Star_full.svg.png"
+                        className="position: sticky ms-2"
+                        style={{ height: "30px", width: "30px" }}
+                      />
+                    </button>
+                  )}
+                </div>
                 <Model
                   ariaHideApp={false}
                   isOpen={commentVisible}

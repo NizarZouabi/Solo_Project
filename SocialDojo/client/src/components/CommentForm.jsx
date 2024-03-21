@@ -7,12 +7,12 @@ const CommentForm = (props) => {
   const { loggedInUser } = useContext(UserContext);
   const [content, setContent] = useState("");
   const [errors, setErrors] = useState({});
-  const [isError, setIsError] = useState(false)
+  const [isError, setIsError] = useState(false);
   const authToken = window.localStorage.getItem("userToken");
 
   useEffect(() => {
-    console.log("Post ID: ", postId)
-  },[postId])
+    console.log("Post ID: ", postId);
+  }, [postId]);
   const commentHandler = (e) => {
     e.preventDefault();
 
@@ -22,31 +22,36 @@ const CommentForm = (props) => {
       content: content,
       author: loggedInUser._id,
       pfp: loggedInUser.profilePic,
-      authorName: loggedInUser.firstName + " " + loggedInUser.lastName
-    }
-    
-    axios.patch(`http://localhost:5000/posts/${postId}/comment`, newComment,{
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-      withCredentials: true,
-    })
-    .then((res) => {
-      setUserPosts([...userPosts, res.data])
-      reload()
-      console.log(res.data)
-    })
-    .catch((err) => {
-      console.log(err.response.data)
-      setErrors(err.response.data)
-      setIsError(true)
-    })
-  }
+      authorName: loggedInUser.firstName + " " + loggedInUser.lastName,
+    };
+
+    axios
+      .patch(`http://localhost:5000/posts/${postId}/comment`, newComment, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+        withCredentials: true,
+      })
+      .then((res) => {
+        setUserPosts([...userPosts, res.data]);
+        reload();
+        console.log(res.data);
+      })
+      .catch((err) => {
+        console.log(err.response.data);
+        setErrors(err.response.data);
+        setIsError(true);
+      });
+  };
 
   return (
     <div className="border bg-gray-50" style={{ borderRadius: "16px" }}>
       <div className="display: flex justify-center">
-        <form className="text-center text-xl py-5" style={{ width: "80%" }} onSubmit={commentHandler}>
+        <form
+          className="text-center text-xl py-5"
+          style={{ width: "80%" }}
+          onSubmit={commentHandler}
+        >
           <div className="display: flex flex-col mb-2">
             <label className="font-bold text-gray-600">Comment:</label>
             <textarea
@@ -59,7 +64,7 @@ const CommentForm = (props) => {
               onChange={(e) => setContent(e.target.value)}
             />
             {isError ? (
-            <p className="text-red-500">Comment can't be empty</p>
+              <p className="text-red-500">Comment can't be empty</p>
             ) : null}
           </div>
           <button className="shadow-md bg-blue-400 hover:bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-full">

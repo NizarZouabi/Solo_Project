@@ -1,3 +1,4 @@
 {
-    
+    "editor.minimap.enabled": false,
+    "eslint.options": { "configFile": "C:/SocialDojo/client/.eslintrc.cjs" }
 }

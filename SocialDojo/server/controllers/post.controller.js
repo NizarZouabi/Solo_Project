@@ -105,47 +105,61 @@ module.exports.findUserAndFriendsPosts = async (req, res) => {
 };
 
 module.exports.addStar = (req, res) => {
-  const postId = req.params.postId;
-  Post.findByIdAndUpdate(
-    postId,
-    { $inc: { stars: 1 } },
-    { new: true }
-  )
-    .then((updatedPost) => {
-      if (!updatedPost) {
+  const postId = req.params.id;
+  const userId = req.params.userId;
+
+  Post.findById(postId)
+    .then(post => {
+      if (!post) {
         return res.status(404).json({ message: "Post not found." });
       }
+      if (!post.stars) {
+        post.stars = [];
+      }
+      if (!post.stars.includes(userId)) {
+        post.stars.push(userId);
+      } else {
+        return res.status(400).json({ message: "User already starred this post." });
+      }
+
+      return post.save();
+    })
+    .then(updatedPost => {
       res.json({
-        message: "Star added to post successfully.",
+        message: "Post starred successfully.",
         post: updatedPost,
       });
     })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json({ message: "Internal server error." });
+    .catch(err => {
+      console.error("Error adding star:", err);
+      res.status(500).json({ message: "An error occurred while adding star to the post." });
     });
 };
 
-module.exports.removeStar = (req, res) => {
-  const postId = req.params.postId;
-  Post.findByIdAndUpdate(
-    postId,
-    { $inc: { stars: -1 } },
-    { new: true }
-  )
-    .then((updatedPost) => {
-      if (!updatedPost) {
-        return res.status(404).json({ message: "Post not found." });
-      }
-      res.json({
-        message: "Star removed from post successfully.",
-        post: updatedPost,
-      });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json({ message: "Internal server error." });
+module.exports.removeStar = async (req, res) => {
+  const postId = req.params.id;
+  const userId = req.params.userId;
+
+  try {
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found." });
+    }
+    const index = post.stars.indexOf(userId);
+    if (index === -1) {
+      return res.status(400).json({ message: "User has not starred this post." });
+    }
+    post.stars.splice(index, 1);
+    const updatedPost = await post.save();
+
+    res.json({
+      message: "Star removed from post successfully.",
+      post: updatedPost,
     });
+  } catch (err) {
+    console.error("Error removing star:", err);
+    res.status(500).json({ message: "Internal server error." });
+  }
 };
 
 module.exports.addComment = (req, res) => {
@@ -192,49 +206,65 @@ module.exports.deleteComment = async (req, res) => {
   }
 };
 
-module.exports.addStarToComment = (req, res) => {
-  const commentId = req.params.commentId;
+module.exports.addStarToComment = async (req, res) => {
+  const { postId, commentId, userId } = req.params;
 
-  Post.findOneAndUpdate(
-    { "comments._id": commentId },
-    { $inc: { "comments.$.stars": 1 } },
-    { new: true }
-  )
-    .then((updatedPost) => {
-      if (!updatedPost) {
-        return res.status(404).json({ message: "Comment not found." });
-      }
-      res.json({
-        message: "Star added to comment successfully.",
-        post: updatedPost,
-      });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json({ message: "Internal server error." });
+  try {
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found." });
+    }
+    const comment = post.comments.id(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found." });
+    }
+    if (comment.stars.includes(userId)) {
+      return res.status(400).json({ message: "User has already starred this comment." });
+    }
+    comment.stars.push(userId);
+
+    const updatedPost = await post.save();
+
+    res.json({
+      message: "Star added to comment successfully.",
+      post: updatedPost,
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error." });
+  }
 };
 
-module.exports.removeStarFromComment = (req, res) => {
-  const commentId = req.params.commentId;
-  Post.findOneAndUpdate(
-    { "comments._id": commentId },
-    { $inc: { "comments.$.stars": -1 } },
-    { new: true }
-  )
-    .then((updatedPost) => {
-      if (!updatedPost) {
-        return res.status(404).json({ message: "Comment not found." });
-      }
-      res.json({
-        message: "Star removed from comment successfully.",
-        post: updatedPost,
-      });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).json({ message: "Internal server error." });
+module.exports.removeStarFromComment = async (req, res) => {
+  const { postId, commentId, userId } = req.params;
+
+  try {
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found." });
+    }
+    const comment = post.comments.id(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found." });
+    }
+    const index = comment.stars.indexOf(userId);
+    if (index === -1) {
+      return res.status(400).json({ message: "User has not starred this comment." });
+    }
+    comment.stars.splice(index, 1);
+    if (comment.starsCount > 0) {
+      comment.starsCount--;
+    }
+    const updatedPost = await post.save();
+
+    res.json({
+      message: "Star removed from comment successfully.",
+      post: updatedPost,
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error." });
+  }
 };
 
 module.exports.deletePost = (req, res) => {

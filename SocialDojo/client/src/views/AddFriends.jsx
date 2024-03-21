@@ -15,14 +15,12 @@ const AddFriends = () => {
   useEffect(() => {
     if (loggedInUser && loggedInUser._id && userId) {
       axios
-        .get(
-          `http://localhost:5000/user/${userId}/find`,{
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-            withCredentials: true,
-          }
-        )
+        .get(`http://localhost:5000/user/${userId}/find`, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+          withCredentials: true,
+        })
         .then((res) => {
           console.log(res.data.users);
           setUsers(res.data.users);
@@ -36,7 +34,11 @@ const AddFriends = () => {
   }, [loggedInUser, userId]);
 
   if (!authToken) {
-    return (<p className="m-5 font-bold text-red-500">Please login to view this page.</p>)
+    return (
+      <p className="m-5 font-bold text-red-500">
+        Please login to view this page.
+      </p>
+    );
   }
 
   if (loading) {
@@ -94,7 +96,8 @@ const AddFriends = () => {
             users.map((user, idx) => (
               <div
                 key={idx}
-                className="container m-24 p-2 display: flex flex-row border rounded-full w-1/6 gap-5 bg-white hover:bg-blue-500 shadow text-gray-500 hover:text-white" style={{ width: "250px", height: "68px" }}
+                className="container m-24 p-2 display: flex flex-row border rounded-full w-1/6 gap-5 bg-white hover:bg-blue-500 shadow text-gray-500 hover:text-white"
+                style={{ width: "250px", height: "68px" }}
               >
                 {user.profilePic &&
                 user.profilePic !==

@@ -167,21 +167,25 @@ const Profile = (props) => {
   const removeFriend = (e) => {
     e.preventDefault();
 
-    axios.patch(`http://localhost:5000/user/${loggedInUser._id}/friend/${userId}/remove`,
-    {},
-    {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-      withCredentials: true,
-    }
-  ).then((res) => {
-    reload()
-    console.log(res.data);
-  }).catch((err) => {
-    console.error(err);
-  })
-  }
+    axios
+      .patch(
+        `http://localhost:5000/user/${loggedInUser._id}/friend/${userId}/remove`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+          withCredentials: true,
+        }
+      )
+      .then((res) => {
+        reload();
+        console.log(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  };
 
   useEffect(() => {
     if (!loading && userId) {
@@ -277,7 +281,8 @@ const Profile = (props) => {
               textShadowOffset: { width: "-1%", height: "1%" },
               textShadowRadius: "5%",
             }}
-          >{user.firstName} {user.lastName}
+          >
+            {user.firstName} {user.lastName}
           </h2>
         </div>
         {loggedInUser._id == user._id && (

@@ -1,4 +1,5 @@
 const express = require("express");
+const { Server } = require("socket.io");
 const app = express();
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
@@ -17,6 +18,34 @@ UserRoutes(app);
 const PostRoutes = require("./routes/post.routes");
 PostRoutes(app);
 
-app.listen(port, () => {
+const httpServer = app.listen(port, () => {
   console.log(`>>> Server running on Port: ${port}`);
+});
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+  },
+})
+
+const usersToSockets = {};
+
+io.on("connection", (socket) => {
+  console.log(`User Connected: ${socket.id}`);
+  socket.on("userId", (userId) => {
+    usersToSockets[userId] = socket.id;
+  });
+
+  socket.on("message", (message) => {
+    const { senderId, receiverId, content } = message;
+    const receiverSocketId = usersToSockets[receiverId];
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("message", { senderId, content });
+    } else {
+      console.log("Receiver not online");
+    }
+  });
 });

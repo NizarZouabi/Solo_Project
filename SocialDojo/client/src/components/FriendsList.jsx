@@ -3,29 +3,39 @@ import { useContext, useState, useEffect } from "react";
 import { UserContext } from "../context/userContext";
 import axios from "axios";
 
-const FriendsList = () => {
-    const { loggedInUser } = useContext(UserContext);
-    const authToken = window.localStorage.getItem("userToken");
-    const [user, setUser] = useState({});
+const FriendsList = (props) => {
+  const { socket } = props;
+  const { loggedInUser } = useContext(UserContext);
+  const authToken = window.localStorage.getItem("userToken");
+  const [user, setUser] = useState({});
 
-    useEffect(() => {
-      if (loggedInUser && loggedInUser._id) {
-        axios
-          .get(`http://localhost:5000/user/${loggedInUser._id}`, {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-            withCredentials: true,
-          })
-          .then((res) => {
-            setUser(res.data.user);
-            console.log(res.data.user);
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      }
-    }, [loggedInUser._id]);
+  useEffect(() => {
+    if (loggedInUser && loggedInUser._id) {
+      axios
+        .get(`http://localhost:5000/user/${loggedInUser._id}`, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+          withCredentials: true,
+        })
+        .then((res) => {
+          setUser(res.data.user);
+          console.log(res.data.user);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, [loggedInUser._id]);
+
+  const joinChatRoom = (e) => {
+    e.preventDefault();
+
+    socket.emit(
+      "connection",
+      loggedInUser.firstName + " " + loggedInUser.lastName
+    );
+  };
 
   return (
     <div>
@@ -50,15 +60,55 @@ const FriendsList = () => {
           className="p-2 bg-gray-50 border border-gray-400 overflow-auto mx-2"
           style={{ height: "88vh" }}
         >
-          <ul
-            className=""
-            style={{ height: "92vh" }}
-          >
-            {user.friends && user.friends.map((friend, idx) => (
-              <li key={idx} className="p-2 font-bold display: flex flex-row gap-5 w-60">
-                {friend.profilePic ? <img className="rounded-full" src={`http://localhost:5000/public/images/${friend.profilePic}`} style={{ width: "40px", height: "40px" }} /> : <img className="rounded-full" src="https://avatarfiles.alphacoders.com/239/239030.jpg" style={{ width: "40px", height: "40px" }} />}<Link className="text-black hover:underline hover:text-green-500 overflow-hidden whitespace-nowrap overflow-ellipsis text-lg mt-1 w-5/6" to={`/user/${friend.userId}`}>{`${friend.firstName} ${friend.lastName}`}</Link>
-              </li>
-            ))}
+          <ul className="" style={{ height: "92vh" }}>
+            {user.friends && user.friends.length > 0 ? (
+              user.friends.map((friend, idx) => (
+                <li
+                  key={idx}
+                  className="font-bold display: flex flex-row gap-3 w-60 border-b  py-3"
+                >
+                  {friend.profilePic ? (
+                    <span
+                      className="rounded-full position: relative"
+                      style={{ width: "52px", height: "45px" }}
+                    >
+                      <img
+                        className="rounded-full"
+                        src={`http://localhost:5000/public/images/${friend.profilePic}`}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "fill",
+                        }}
+                      />
+                    </span>
+                  ) : (
+                    <span
+                      className="rounded-full position: relative"
+                      style={{ width: "52px", height: "45px" }}
+                    >
+                      <img
+                        className="rounded-full"
+                        src="https://avatarfiles.alphacoders.com/239/239030.jpg"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "fill",
+                        }}
+                      />
+                    </span>
+                  )}
+                  <Link
+                    className="text-black hover:underline hover:text-green-500 overflow-hidden whitespace-nowrap overflow-ellipsis text-xl my-1 w-5/6"
+                    to={`/user/${loggedInUser._id}/conversation/${friend.userId}/messages/show`}
+                  >{`${friend.firstName} ${friend.lastName}`}</Link>
+                </li>
+              ))
+            ) : (
+              <div className="m-3">
+                <p className="text-center">No friends yet.</p>
+              </div>
+            )}
           </ul>
         </div>
         <div className="display: flex flex-row gap-2 mx-10 mb-1 p-3 bottom-0">

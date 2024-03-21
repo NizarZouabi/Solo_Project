@@ -9,7 +9,7 @@ const PostForm = (props) => {
   const [content, setContent] = useState("");
   const [author] = useState(loggedInUser._id);
   const [file, setFile] = useState(null);
-  const { userPosts, setUserPosts, allPosts, setAllPosts } = props
+  const { userPosts, setUserPosts, allPosts, setAllPosts } = props;
   const authToken = window.localStorage.getItem("userToken");
   // const { sharedPosts, setSharedPosts } = props
 
@@ -25,11 +25,11 @@ const PostForm = (props) => {
     postFormData.append("file", file);
 
     axios
-      .post("http://localhost:5000/posts/new", postFormData ,{
+      .post("http://localhost:5000/posts/new", postFormData, {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
-        withCredentials: true
+        withCredentials: true,
       })
       .then((res) => {
         console.log(res.data);

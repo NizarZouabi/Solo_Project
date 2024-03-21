@@ -40,11 +40,13 @@ const Login = () => {
       });
   };
 
-  useEffect (() => {
+  useEffect(() => {
     if (authToken) {
       const userId = window.localStorage.getItem("userId");
       Nav(`/posts/user/${userId}/feed`);
-    }[authToken, Nav]})
+    }
+    [authToken, Nav];
+  });
 
   return (
     <div>

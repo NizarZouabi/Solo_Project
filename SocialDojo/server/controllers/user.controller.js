@@ -322,3 +322,63 @@ module.exports.removeFriend = async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 };
+
+module.exports.saveMessage = async (req, res) => {
+  try {
+    const { userId, friendId } = req.params;
+    const { content } = req.body;
+
+    const [user, friend] = await Promise.all([
+      User.findById(userId),
+      User.findById(friendId),
+    ]);
+
+    if (!user || !friend) {
+      return res.status(404).json({ message: "User or friend not found." });
+    }
+
+    let userChat = user.chats.find((chat) => chat.withUser.equals(friendId));
+    let friendChat = friend.chats.find((chat) => chat.withUser.equals(userId));
+
+    if (!userChat) {
+      userChat = { withUser: friendId, messages: [] };
+      user.chats.push(userChat);
+    }
+    if (!friendChat) {
+      friendChat = { withUser: userId, messages: [] };
+      friend.chats.push(friendChat);
+    }
+    const message = {
+      senderId: userId,
+      content: content,
+      timestamp: Date.now(),
+    };
+
+    userChat.messages.push(message);
+    friendChat.messages.push(message);
+    await Promise.all([user.save(), friend.save()]);
+    return res.json({ message });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+module.exports.showMessages = async (req, res) => {
+  try {
+    const { userId, friendId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const chat = user.chats.find(chat => chat.withUser.toString() === friendId);
+    if (!chat) {
+      return res.status(404).json({ error: "Chat not found" });
+    }
+    
+    res.json({ messages: chat.messages });
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
