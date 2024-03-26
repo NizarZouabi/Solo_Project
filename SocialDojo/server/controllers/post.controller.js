@@ -93,47 +93,45 @@ module.exports.findUserAndFriendsPosts = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
     const friendIds = user.friends.map(friend => friend.userId);
+    
+    const userAndFriendsPosts = await Post.find({ $or: [{ author: userId }, { author: { $in: friendIds } }] }).populate('author');
     const userPosts = await Post.find({ author: userId }).populate('author');
-    const friendsPosts = await Post.find({ author: { $in: friendIds } }).populate('author');
-    const allPosts = [...userPosts, ...friendsPosts];
 
-    res.json({ userPosts, allPosts });
+    res.json({ userAndFriendsPosts, userPosts });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error." });
   }
 };
 
-module.exports.addStar = (req, res) => {
+module.exports.addStar = async (req, res) => {
   const postId = req.params.id;
   const userId = req.params.userId;
 
-  Post.findById(postId)
-    .then(post => {
-      if (!post) {
-        return res.status(404).json({ message: "Post not found." });
-      }
-      if (!post.stars) {
-        post.stars = [];
-      }
-      if (!post.stars.includes(userId)) {
-        post.stars.push(userId);
-      } else {
-        return res.status(400).json({ message: "User already starred this post." });
-      }
+  try {
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found." });
+    }
+    if (!post.stars) {
+      post.stars = [];
+    }
+    if (!post.stars.includes(userId)) {
+      post.stars.push(userId);
+    } else {
+      return res.status(400).json({ message: "User already starred this post." });
+    }
 
-      return post.save();
-    })
-    .then(updatedPost => {
-      res.json({
-        message: "Post starred successfully.",
-        post: updatedPost,
-      });
-    })
-    .catch(err => {
-      console.error("Error adding star:", err);
-      res.status(500).json({ message: "An error occurred while adding star to the post." });
+    const updatedPost = await post.save();
+
+    res.json({
+      message: "Post starred successfully.",
+      post: updatedPost,
     });
+  } catch (err) {
+    console.error("Error adding star:", err);
+    res.status(500).json({ message: "An error occurred while adding star to the post." });
+  }
 };
 
 module.exports.removeStar = async (req, res) => {
@@ -165,7 +163,7 @@ module.exports.removeStar = async (req, res) => {
 module.exports.addComment = (req, res) => {
   const postId = req.params.id;
   const newComment = {
-    content: req.body.content,
+    comment: req.body.comment,
     author: req.body.author,
     pfp: req.body.pfp,
     authorName: req.body.authorName,

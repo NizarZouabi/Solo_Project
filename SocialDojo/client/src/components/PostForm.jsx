@@ -3,15 +3,14 @@ import { UserContext } from "../context/userContext";
 import axios from "axios";
 
 const PostForm = (props) => {
-  const { loggedInUser } = useContext(UserContext);
+  // const { sharedPosts, setSharedPosts } = props
+  const { loggedInUser, authToken } = useContext(UserContext);
   const [errors, setErrors] = useState({});
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [author] = useState(loggedInUser._id);
   const [file, setFile] = useState(null);
   const { userPosts, setUserPosts, allPosts, setAllPosts } = props;
-  const authToken = window.localStorage.getItem("userToken");
-  // const { sharedPosts, setSharedPosts } = props
 
   const submitHandler = (e) => {
     e.preventDefault();

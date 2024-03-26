@@ -1,5 +1,3 @@
-// import { useContext, useState } from 'react';
-// import { UserContext } from '../context/userContext';
 import Model from "react-modal";
 import Logout from "../components/Logout";
 import PostModal from "../components/PostModal";
@@ -12,24 +10,25 @@ import axios from "axios";
 import Requests from "../components/Requests";
 
 const Profile = (props) => {
-  const { userId } = useParams();
+  // const { sharedPosts, setSharedPosts } = props;
+  const authToken = window.localStorage.getItem("userToken");
   const [visiblePfp, setVisiblePfp] = useState(false);
   const [visibleBanner, setVisibleBanner] = useState(false);
   const [setErrors] = useState([]);
-  // const { sharedPosts, setSharedPosts } = props
-  const authToken = window.localStorage.getItem("userToken");
   const { loggedInUser } = useContext(UserContext);
-  const { userPosts, setUserPosts } = props;
   const [user, setUser] = useState({});
   const [profilePic, setProfilePic] = useState(null);
   const [coverPic, setCoverPic] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
-  const sortedPosts = userPosts
-    .slice()
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
+  const { userId } = useParams();
+  useEffect(() => {
+    props.setId(userId);
+  }, [userId, props.setId]);
+  const { userPosts, setUserPosts, loading } = props;
   const reload = () => window.location.reload();
+  const sortedPosts = userPosts
+  .slice()
+  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const getGenderPronoun = (gender) => {
     return gender === "Male" ? "his" : gender === "Female" ? "her" : null;
@@ -40,10 +39,11 @@ const Profile = (props) => {
 
     const profileFormData = new FormData();
     profileFormData.append("file", profilePic);
+    profileFormData.append("imageType", "profilePic");
 
     axios
       .patch(
-        `http://localhost:5000/user/${loggedInUser._id}/pfp/upload`,
+        `http://localhost:5000/user/${userId}/pfp/upload`,
         profileFormData,
         {
           headers: {
@@ -67,7 +67,7 @@ const Profile = (props) => {
 
     const profileFormData = new FormData();
     profileFormData.append("file", coverPic);
-    profileFormData.append("imageType", "CoverPic");
+    profileFormData.append("imageType", "coverPic");
 
     axios
       .patch(
@@ -186,27 +186,6 @@ const Profile = (props) => {
         console.error(err);
       });
   };
-
-  useEffect(() => {
-    if (!loading && userId) {
-      axios
-        .get(`http://localhost:5000/posts/user/${userId}/feed`, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-          withCredentials: true,
-        })
-        .then((res) => {
-          setUserPosts(res.data.userPosts);
-          console.log(res.data.userPosts);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.log(err);
-          setLoading(false);
-        });
-    }
-  }, [loggedInUser, userId, authToken, loading, setUserPosts]);
 
   const birthdate = (date) => {
     let d = new Date(date);
@@ -494,12 +473,11 @@ const Profile = (props) => {
 
       {loggedInUser._id === user._id ? (
         <div>
-          {sortedPosts.length > 0 ? (
-            sortedPosts.map((profilePost, idx) => (
+          { sortedPosts && sortedPosts.length > 0 ? (
+            sortedPosts.map((post, idx) => (
               <Post
                 key={idx}
-                post={profilePost}
-                user={user}
+                post={post}
                 profilePic={profilePic}
                 userPosts={userPosts}
                 setUserPosts={setUserPosts}
@@ -539,12 +517,11 @@ const Profile = (props) => {
               Add this user as a friend to see {getGenderPronoun(user.gender)}{" "}
               posts.
             </p>
-          ) : sortedPosts.length > 0 ? (
-            sortedPosts.map((profilePost, idx) => (
+          ) : sortedPosts && sortedPosts.length > 0 ? (
+            sortedPosts.map((post, idx) => (
               <Post
                 key={idx}
-                post={profilePost}
-                user={user}
+                post={post}
                 profilePic={profilePic}
                 userPosts={userPosts}
                 setUserPosts={setUserPosts}

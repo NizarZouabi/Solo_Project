@@ -95,6 +95,14 @@ function Conversation(props) {
       });
   }, [loggedInUser._id, friendId, messages]);
 
+  if (!authToken) {
+    return (
+      <p className="m-5 font-bold text-red-500">
+        Please login to view this page.
+      </p>
+    );
+  }
+
   return (
     <div>
       <FriendsList socket={socket} />
