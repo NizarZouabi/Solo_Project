@@ -205,10 +205,10 @@ module.exports.deleteComment = async (req, res) => {
 };
 
 module.exports.addStarToComment = async (req, res) => {
-  const { postId, commentId, userId } = req.params;
+  const { id, commentId, userId } = req.params;
 
   try {
-    const post = await Post.findById(postId);
+    const post = await Post.findById(id);
     if (!post) {
       return res.status(404).json({ message: "Post not found." });
     }
@@ -234,10 +234,10 @@ module.exports.addStarToComment = async (req, res) => {
 };
 
 module.exports.removeStarFromComment = async (req, res) => {
-  const { postId, commentId, userId } = req.params;
+  const { id, commentId, userId } = req.params;
 
   try {
-    const post = await Post.findById(postId);
+    const post = await Post.findById(id);
     if (!post) {
       return res.status(404).json({ message: "Post not found." });
     }

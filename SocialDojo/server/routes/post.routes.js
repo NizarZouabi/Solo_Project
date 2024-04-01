@@ -9,8 +9,8 @@ module.exports = (app) => {
     app.get("/posts/user/:userId/all", authenticate, PostController.findUserAndFriendsPosts);
     app.patch("/posts/:id/comment", authenticate, PostController.addComment);
     app.delete("/posts/:id/remove/comment/:commentId", authenticate ,PostController.deleteComment);
-    app.patch("/posts/user/:userId/addstar/:id", PostController.addStar);
-    app.patch("/posts/user/:userId/removestar/:id", PostController.removeStar);
-    app.patch("/posts/user/:userId/addcommentstar/:commentId", PostController.addStarToComment);
-    app.patch("/posts/user/:userId/removecommentstar/:commentId", PostController.removeStarFromComment);
+    app.patch("/posts/user/:userId/add/star/:id", PostController.addStar);
+    app.patch("/posts/user/:userId/remove/star/:id", PostController.removeStar);
+    app.patch("/posts/user/:id/:userId/add/star/comment/:commentId", PostController.addStarToComment);
+    app.patch("/posts/user/:id/:userId/remove/star/comment/:commentId", PostController.removeStarFromComment);
 }
