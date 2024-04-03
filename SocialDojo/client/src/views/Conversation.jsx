@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import { UserContext } from "../context/userContext";
 import FriendsList from "../components/FriendsList";
 import { useParams, Link } from "react-router-dom";
@@ -12,6 +12,7 @@ function Conversation(props) {
   const [messages, setMessages] = useState([]);
   const { friendId } = useParams();
   const [friend, setFriend] = useState({});
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     socket.emit("userId", loggedInUser._id);
@@ -94,6 +95,10 @@ function Conversation(props) {
         console.error(err);
       });
   }, [loggedInUser._id, friendId, messages]);
+
+  // useEffect(() => {
+  //   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  // }, [messages]);
 
   if (!authToken) {
     return (
@@ -288,6 +293,7 @@ function Conversation(props) {
                 </div>
               ))}
             </div>
+            <div ref={messagesEndRef} />
           </div>
           <form
             onSubmit={sendMessage}

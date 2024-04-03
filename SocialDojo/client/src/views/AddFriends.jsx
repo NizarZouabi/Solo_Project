@@ -11,6 +11,7 @@ const AddFriends = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const { userId } = useParams();
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (loggedInUser && loggedInUser._id && userId) {
@@ -32,6 +33,14 @@ const AddFriends = () => {
         });
     }
   }, [loggedInUser, userId]);
+
+  const handleSearch = () => {
+    const filteredUsers = users.filter(user => {
+      const fullName = `${user.firstName} ${user.lastName}`;
+      return fullName.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+    return filteredUsers;
+  };
 
   if (!authToken) {
     return (
@@ -63,6 +72,8 @@ const AddFriends = () => {
             style={{ width: "95%" }}
             type="search"
             placeholder="Search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <div className="display: flex gap-2 my-1">
@@ -92,50 +103,40 @@ const AddFriends = () => {
         }}
       >
         <div className="display: grid grid-cols-3 overflow-auto w-full h-full">
-          {loggedInUser && users.length > 0 ? (
-            users.map((user, idx) => (
-              <div
-                key={idx}
-                className="container m-24 p-2 display: flex flex-row border rounded-full w-1/6 gap-5 bg-white hover:bg-blue-500 shadow text-gray-500 hover:text-white"
-                style={{ width: "250px", height: "68px" }}
-              >
-                {user.profilePic &&
-                user.profilePic !==
-                  "https://avatarfiles.alphacoders.com/239/239030.jpg" ? (
-                  <img
-                    className="border border-solid border-gray-400 rounded-full"
-                    src={`http://localhost:5000/public/images/${user.profilePic}`}
-                    style={{
-                      width: "50px",
-                      height: "50px",
-                      objectFit: "fill",
-                    }}
-                  />
-                ) : (
-                  <img
-                    className="border border-solid border-gray-400 rounded-full"
-                    src="https://avatarfiles.alphacoders.com/239/239030.jpg"
-                    style={{
-                      width: "50px",
-                      height: "50px",
-                      objectFit: "fill",
-                    }}
-                  />
-                )}
-                <Link
-                  to={`/user/${user._id}`}
-                  className="font-semibold text-xl mt-2 hover:underline overflow-hidden whitespace-nowrap overflow-ellipsis"
+            {loggedInUser && users.length > 0 ? (
+              handleSearch().map((user, idx) => (
+                <div
+                  key={idx}
+                  className="container m-24 p-2 display: flex flex-row border rounded-full w-1/6 gap-5 bg-white hover:bg-blue-500 shadow text-gray-500 hover:text-white"
+                  style={{ width: "250px", height: "68px" }}
                 >
-                  <span className="me-2">{user.firstName}</span>
-                  <span className="">{user.lastName}</span>
-                </Link>
+                  {user.profilePic && user.profilePic !== "https://avatarfiles.alphacoders.com/239/239030.jpg" ? (
+                    <img
+                      className="border border-solid border-gray-400 rounded-full"
+                      src={`http://localhost:5000/public/images/${user.profilePic}`}
+                      style={{ width: "50px", height: "50px", objectFit: "fill" }}
+                    />
+                  ) : (
+                    <img
+                      className="border border-solid border-gray-400 rounded-full"
+                      src="https://avatarfiles.alphacoders.com/239/239030.jpg"
+                      style={{ width: "50px", height: "50px", objectFit: "fill" }}
+                    />
+                  )}
+                  <Link
+                    to={`/user/${user._id}`}
+                    className="font-semibold text-xl mt-2 hover:underline overflow-hidden whitespace-nowrap overflow-ellipsis"
+                  >
+                    <span className="me-2">{user.firstName}</span>
+                    <span className="">{user.lastName}</span>
+                  </Link>
+                </div>
+              ))
+            ) : (
+              <div>
+                <p className="m-5 font-bold">No other users available yet.</p>
               </div>
-            ))
-          ) : (
-            <div>
-              <p className="m-5 font-bold">No other users available yet.</p>
-            </div>
-          )}
+            )}
         </div>
       </div>
     </div>

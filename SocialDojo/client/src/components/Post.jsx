@@ -45,11 +45,15 @@ const Post = (props) => {
         const updatedPost = res.data.post;
         const updatedComments = updatedPost.comments;
         const updatedUserPosts = userPosts.map((prevPost) =>
-          prevPost._id === updatedPost._id ? { ...prevPost, comments: updatedComments } : prevPost
+          prevPost._id === updatedPost._id
+            ? { ...prevPost, comments: updatedComments }
+            : prevPost
         );
         setUserPosts(updatedUserPosts);
         const updatedAllPosts = allPosts.map((prevPost) =>
-          prevPost._id === updatedPost._id ? { ...prevPost, comments: updatedComments } : prevPost
+          prevPost._id === updatedPost._id
+            ? { ...prevPost, comments: updatedComments }
+            : prevPost
         );
         setAllPosts(updatedAllPosts);
       })
@@ -57,7 +61,7 @@ const Post = (props) => {
         console.log(err);
       });
   };
-  
+
   const removeStarFromComment = (commentId) => {
     axios
       .patch(
@@ -75,11 +79,15 @@ const Post = (props) => {
         const updatedPost = res.data.post;
         const updatedComments = updatedPost.comments;
         const updatedUserPosts = userPosts.map((prevPost) =>
-          prevPost._id === updatedPost._id ? { ...prevPost, comments: updatedComments } : prevPost
+          prevPost._id === updatedPost._id
+            ? { ...prevPost, comments: updatedComments }
+            : prevPost
         );
         setUserPosts(updatedUserPosts);
         const updatedAllPosts = allPosts.map((prevPost) =>
-          prevPost._id === updatedPost._id ? { ...prevPost, comments: updatedComments } : prevPost
+          prevPost._id === updatedPost._id
+            ? { ...prevPost, comments: updatedComments }
+            : prevPost
         );
         setAllPosts(updatedAllPosts);
       })
@@ -107,7 +115,7 @@ const Post = (props) => {
       })
       .then((res) => {
         const updatedPost = res.data.post;
-        setCommentVisible(false)
+        setCommentVisible(false);
         if (updatedPost) {
           setUserPosts((prevUserPosts) =>
             prevUserPosts.map((prevPost) =>
@@ -543,26 +551,43 @@ const Post = (props) => {
                                   {comment?.comment}
                                 </p>
                               )}
-                              {comment && !comment?.stars.includes(loggedInUser._id) ? (<div className="display: flex flex-row">
-                                <p className="ms-2">{comment?.stars.length}</p>
-                                <button onClick={() => addStarToComment(comment._id)} className="mb-5">
-                                  <img
-                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/2011px-Star_empty.svg.png"
-                                    className="position: sticky ms-2"
-                                    style={{ height: "30px", width: "30px" }}
-                                  />
-                                </button>
-                              </div>) : (
+                              {comment &&
+                              !comment?.stars.includes(loggedInUser._id) ? (
                                 <div className="display: flex flex-row">
-                                <p className="ms-2">{comment?.stars.length}</p>
-                                <button onClick={() => removeStarFromComment(comment._id)} className="mb-5">
-                                  <img
-                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/1005px-Star_full.svg.png"
-                                    className="position: sticky ms-2"
-                                    style={{ height: "30px", width: "30px" }}
-                                  />
-                                </button>
-                              </div>
+                                  <p className="ms-2">
+                                    {comment?.stars.length}
+                                  </p>
+                                  <button
+                                    onClick={() =>
+                                      addStarToComment(comment._id)
+                                    }
+                                    className="mb-5"
+                                  >
+                                    <img
+                                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Star_empty.svg/2011px-Star_empty.svg.png"
+                                      className="position: sticky ms-2"
+                                      style={{ height: "30px", width: "30px" }}
+                                    />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="display: flex flex-row">
+                                  <p className="ms-2">
+                                    {comment?.stars.length}
+                                  </p>
+                                  <button
+                                    onClick={() =>
+                                      removeStarFromComment(comment._id)
+                                    }
+                                    className="mb-5"
+                                  >
+                                    <img
+                                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Star_full.svg/1005px-Star_full.svg.png"
+                                      className="position: sticky ms-2"
+                                      style={{ height: "30px", width: "30px" }}
+                                    />
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </div>

@@ -142,27 +142,6 @@ module.exports.logout = (req, res) => {
   res.sendStatus(200);
 };
 
-module.exports.getuser = (req, res) => {
-  const userId = req.params.id;
-  User.findOne({ _id: userId })
-    .then((user) => {
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      const userData = {
-        _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        profilePic: user.profilePic,
-        coverPic: user.coverPic,
-        role: user.role,
-        friends: user.friends,
-      };
-      res.json({ user: userData });
-    })
-    .catch((err) => res.status(400).json(err));
-};
-
 module.exports.getusers = (req, res) => {
   const userId = req.params.userId;
 

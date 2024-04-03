@@ -8,6 +8,7 @@ const FriendsList = (props) => {
   const { loggedInUser } = useContext(UserContext);
   const authToken = window.localStorage.getItem("userToken");
   const [user, setUser] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (loggedInUser && loggedInUser._id) {
@@ -28,14 +29,24 @@ const FriendsList = (props) => {
     }
   }, [loggedInUser._id]);
 
-  const joinChatRoom = (e) => {
-    e.preventDefault();
-
-    socket.emit(
-      "connection",
-      loggedInUser.firstName + " " + loggedInUser.lastName
-    );
+  const handleSearch = () => {
+    if (user && user.friends) {
+      return user.friends.filter((friend) => {
+        const fullName = `${friend.firstName} ${friend.lastName}`;
+        return fullName.toLowerCase().includes(searchQuery.toLowerCase());
+      });
+    }
+    return [];
   };
+
+  // const joinChatRoom = (e) => {
+  //   e.preventDefault();
+
+  //   socket.emit(
+  //     "connection",
+  //     loggedInUser.firstName + " " + loggedInUser.lastName
+  //   );
+  // };
 
   return (
     <div>
@@ -54,6 +65,8 @@ const FriendsList = (props) => {
             style={{ width: "95%" }}
             type="search"
             placeholder="Search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <div
@@ -61,52 +74,55 @@ const FriendsList = (props) => {
           style={{ height: "88vh" }}
         >
           <ul className="" style={{ height: "92vh" }}>
-            {user.friends && user.friends.length > 0 ? (
-              user.friends.map((friend, idx) => (
-                <li
-                  key={idx}
-                  className="font-bold display: flex flex-row gap-3 w-60 border-b  py-3"
+            {user.friends && user.friends.length > 0 && handleSearch().map((friend, idx) => (
+              <li
+                key={idx}
+                className="font-bold display: flex flex-row gap-3 w-60 border-b py-3"
+              >
+                {friend.profilePic ? (
+                  <span
+                    className="rounded-full position: relative"
+                    style={{ width: "52px", height: "45px" }}
+                  >
+                    <img
+                      className="rounded-full"
+                      src={`http://localhost:5000/public/images/${friend.profilePic}`}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "fill",
+                      }}
+                      alt={`Profile of ${friend.firstName} ${friend.lastName}`}
+                    />
+                  </span>
+                ) : (
+                  <span
+                    className="rounded-full position: relative"
+                    style={{ width: "52px", height: "45px" }}
+                  >
+                    <img
+                      className="rounded-full"
+                      src="https://avatarfiles.alphacoders.com/239/239030.jpg"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "fill",
+                      }}
+                      alt={`Profile of ${friend.firstName} ${friend.lastName}`}
+                    />
+                  </span>
+                )}
+                <Link
+                  className="text-black hover:underline hover:text-green-500 overflow-hidden whitespace-nowrap overflow-ellipsis text-xl my-1 w-5/6"
+                  to={`/user/${loggedInUser._id}/conversation/${friend.userId}/messages/show`}
                 >
-                  {friend.profilePic ? (
-                    <span
-                      className="rounded-full position: relative"
-                      style={{ width: "52px", height: "45px" }}
-                    >
-                      <img
-                        className="rounded-full"
-                        src={`http://localhost:5000/public/images/${friend.profilePic}`}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "fill",
-                        }}
-                      />
-                    </span>
-                  ) : (
-                    <span
-                      className="rounded-full position: relative"
-                      style={{ width: "52px", height: "45px" }}
-                    >
-                      <img
-                        className="rounded-full"
-                        src="https://avatarfiles.alphacoders.com/239/239030.jpg"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "fill",
-                        }}
-                      />
-                    </span>
-                  )}
-                  <Link
-                    className="text-black hover:underline hover:text-green-500 overflow-hidden whitespace-nowrap overflow-ellipsis text-xl my-1 w-5/6"
-                    to={`/user/${loggedInUser._id}/conversation/${friend.userId}/messages/show`}
-                  >{`${friend.firstName} ${friend.lastName}`}</Link>
-                </li>
-              ))
-            ) : (
+                  {`${friend.firstName} ${friend.lastName}`}
+                </Link>
+              </li>
+            ))}
+            {handleSearch().length === 0 && (
               <div className="m-3">
-                <p className="text-center">No friends yet.</p>
+                <p className="text-center">No friends found.</p>
               </div>
             )}
           </ul>
